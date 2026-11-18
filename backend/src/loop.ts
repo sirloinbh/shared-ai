@@ -43,7 +43,15 @@ export async function runToolLoop(options: ToolLoopOptions): Promise<{ message: 
     // The whole content goes back, thinking blocks included, so the next request continues the same turn.
     messages.push({ role: 'assistant', content: message.content });
     const uses = message.content.filter((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use');
-    if (message.stop_reason !== 'tool_use' || uses.length === 0 || i + 1 >= maxRequests) return { message, messages };
+    if (message.stop_reason !== 'tool_use' || uses.length === 0) return { message, messages };
+    if (i + 1 >= maxRequests) {
+      // Every tool_use needs a tool_result, or the stored conversation cannot continue.
+      messages.push({
+        role: 'user',
+        content: uses.map((use) => ({ type: 'tool_result', tool_use_id: use.id, content: 'Stopped: too many steps in one turn.', is_error: true })),
+      });
+      return { message, messages };
+    }
     const results: Anthropic.ToolResultBlockParam[] = [];
     for (const use of uses) results.push(await runTool(hub, use, context.client, approve));
     // All results in one user message, so parallel calls stay parallel.

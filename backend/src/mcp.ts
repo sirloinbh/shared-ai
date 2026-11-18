@@ -39,7 +39,8 @@ export async function callHubTool(hub: ToolHub, name: string, input: unknown, cl
 function config(tool: HubTool) {
   return {
     description: `[${tool.app}] ${tool.description}`,
-    inputSchema: fromJsonSchema(tool.inputSchema, passThrough),
+    // MCP tool input is always an object; the apps' Zod schemas are objects already.
+    inputSchema: fromJsonSchema({ type: 'object', ...tool.inputSchema }, passThrough),
     annotations: { ...tool.annotations, title: `${tool.app}: ${tool.tool}` },
   };
 }
@@ -64,8 +65,14 @@ export function createMcpServer(hub: ToolHub, client: string) {
       const known = registered.get(name);
       if (known && JSON.stringify(known.tool) === JSON.stringify(tool)) continue;
       known?.handle.remove();
-      const handle = server.registerTool(name, config(tool), async (input: unknown) => callHubTool(hub, name, input, client));
-      registered.set(name, { tool, handle });
+      registered.delete(name);
+      // One tool the SDK refuses must not keep the others out.
+      try {
+        const handle = server.registerTool(name, config(tool), async (input: unknown) => callHubTool(hub, name, input, client));
+        registered.set(name, { tool, handle });
+      } catch (err) {
+        console.error(`shared-ai mcp: tool ${name} left out: ${err instanceof Error ? err.message : String(err)}`);
+      }
     }
   };
 

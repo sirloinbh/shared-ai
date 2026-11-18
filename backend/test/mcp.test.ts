@@ -71,7 +71,7 @@ test('the stdio MCP server lists app tools as <app>__<tool> and calls them throu
     };
     assert.notEqual(call.isError, true, JSON.stringify(call));
     assert.deepEqual(JSON.parse(call.content[0]!.text), { tool: 'add_workout', echo: { date: '2026-11-18', title: 'Legs' } });
-    assert.deepEqual(app.state.calls[0]?.caller, { owner: 'user-1', client: 'stdio', scopes: ['workout-memo:read', 'workout-memo:write'] });
+    assert.deepEqual(app.state.calls[0]?.caller, { owner: 'user-1', client: 'stdio', scopes: ['workout-memo:write'] });
 
     // The app's own refusal reaches the model as a tool error, not a protocol error.
     app.state.down = true;

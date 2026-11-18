@@ -209,6 +209,49 @@ test('a tool that is not read-only runs only when the owner approves', async () 
   }
 });
 
+test('at the step limit every open tool_use gets an error result, so the conversation can continue', async () => {
+  const pair = generateKeyPairSync('ed25519');
+  const signer = createSigner(pair.privateKey.export({ type: 'pkcs8', format: 'pem' }).toString());
+  const app = await startFakeApp('workout-memo', createPublicKey(signer.publicKeyPem()));
+  try {
+    const hub = new ToolHub({ apps: [{ name: 'workout-memo', url: app.url }], signer, owner: 'user-1', log: () => {} });
+    await hub.refresh();
+    const { db } = fakeDb();
+    const useTool = (id: string) =>
+      message({
+        stop_reason: 'tool_use',
+        content: [{ type: 'tool_use', id, name: 'workout_memo__list_workouts', input: {}, caller: { type: 'direct' } } as Anthropic.ToolUseBlock],
+      });
+    const { client, requests } = fakeClient([useTool('t1'), useTool('t2'), message({})]);
+    const caller = new ClaudeCaller({ client, db, monthlyTokenLimit: 100_000 });
+    const { messages } = await runToolLoop({ caller, hub, request: params, context: { client: 'ai-shell' }, approve: async () => true, maxRequests: 2 });
+    assert.equal(requests.length, 2);
+    assert.equal(app.state.calls.length, 1, 'the tool asked for at the limit does not run');
+    const last = messages.at(-1)!;
+    assert.equal(last.role, 'user');
+    const [result] = last.content as Anthropic.ToolResultBlockParam[];
+    assert.equal(result?.tool_use_id, 't2');
+    assert.equal(result?.is_error, true);
+  } finally {
+    await app.close();
+  }
+});
+
+test('a usage row that cannot be written is logged and the answer is still returned', async () => {
+  const db: Db = {
+    query: async <R>(text: string) => {
+      if (/^\s*insert into ai_usage/i.test(text)) throw new Error('db down');
+      return { rows: [{ total: null }] as R[] };
+    },
+  };
+  const lines: string[] = [];
+  const { client } = fakeClient([message({})]);
+  const caller = new ClaudeCaller({ client, db, monthlyTokenLimit: 1000, log: (line) => lines.push(line) });
+  const answer = await caller.create(params);
+  assert.equal(answer.stop_reason, 'end_turn');
+  assert.match(lines[0] ?? '', /usage row not written/);
+});
+
 test('hub tools become Messages API tools without the $schema key', () => {
   const [tool] = claudeTools([
     {

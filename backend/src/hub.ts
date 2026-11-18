@@ -108,15 +108,35 @@ export class ToolHub {
     return () => this.listeners.delete(listener);
   }
 
-  /** Reads every app's list once. An app that fails is dropped; the others stay. */
-  async refresh(): Promise<void> {
+  /**
+   * Reads every app's list once. An app that fails is dropped; the others stay. A refresh that is still running is
+   * joined, so an older answer never overwrites a newer one.
+   */
+  refresh(): Promise<void> {
+    this.running ??= this.readAll().finally(() => {
+      this.running = undefined;
+    });
+    return this.running;
+  }
+
+  private running: Promise<void> | undefined;
+
+  private async readAll(): Promise<void> {
     const before = this.signature();
     const results = await Promise.all(this.options.apps.map(async (app) => [app.name, await this.listApp(app)] as const));
     const byApp = new Map<string, HubTool[]>();
     for (const [name, tools] of results) if (tools) byApp.set(name, tools);
     this.byApp = byApp;
     this.byName = new Map([...byApp.values()].flat().map((t) => [t.name, t]));
-    if (this.signature() !== before) for (const listener of this.listeners) listener();
+    if (this.signature() === before) return;
+    for (const listener of this.listeners) {
+      // One failing listener must not stop the others or fail the refresh.
+      try {
+        listener();
+      } catch (err) {
+        this.options.log(`hub: change listener failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
   }
 
   /** Refreshes now and then every `intervalMs`. */
@@ -131,15 +151,15 @@ export class ToolHub {
   }
 
   /**
-   * Calls a hub tool for the owner. The token names this client and grants the app's scopes the caller holds
-   * (default: read and write of that app); the app still checks the scope and writes the audit row.
+   * Calls a hub tool for the owner. The token names this client and grants only the scope this tool needs, and only
+   * when the caller holds it (default: every scope); the app still checks the scope and writes the audit row.
    */
   async call(name: string, input: unknown, context: CallContext): Promise<unknown> {
     const tool = this.byName.get(name);
     if (!tool) throw new ToolCallError(404, `Unknown tool ${name}`);
     const app = this.options.apps.find((a) => a.name === tool.app);
     if (!app) throw new ToolCallError(404, `Unknown app ${tool.app}`);
-    const scopes = (context.scopes ?? [`${app.name}:read`, `${app.name}:write`]).filter((s) => s.startsWith(`${app.name}:`));
+    const scopes = !context.scopes || context.scopes.includes(tool.scope) ? [tool.scope] : [];
     const token = this.options.signer.sign({ app: app.name, owner: this.options.owner, client: context.client, scopes });
     let response: Response;
     try {

@@ -46,8 +46,12 @@ if [ ! -f .env ]; then
   echo "deploy: created .env with a new DB password"
 fi
 
-# KEY, parameter, and required (1 or 0) from the @ssm= tags in .env.example.
+# KEY, parameter, and required (1 or 0) from the @ssm= tags in .env.example. Read into a variable first, so
+# set -e stops the deploy when awk fails instead of silently reading nothing.
+pairs=$(awk '/^[[:space:]]*#/ { tag = ""; req = ($0 ~ /@required/) ? 1 : 0; if (match($0, /@ssm=[^[:space:]@]+/)) tag = substr($0, RSTART + 5, RLENGTH - 5); next }
+  /^[A-Z0-9_]+=/ { if (tag != "") { split($0, kv, "="); print kv[1], tag, req }; tag = "" }' .env.example)
 while read -r key name required; do
+  [ -n "$key" ] || continue
   if value=$(ssm_get "$name"); then
     export "$key=$value"
   elif [ "$required" = 1 ]; then
@@ -56,8 +60,7 @@ while read -r key name required; do
   else
     echo "deploy: could not read $name; $key stays empty" >&2
   fi
-done < <(awk '/^[[:space:]]*#/ { tag = ""; req = ($0 ~ /@required/) ? 1 : 0; if (match($0, /@ssm=[^[:space:]@]+/)) tag = substr($0, RSTART + 5, RLENGTH - 5); next }
-  /^[A-Z0-9_]+=/ { if (tag != "") { split($0, kv, "="); print kv[1], tag, req }; tag = "" }' .env.example)
+done <<< "$pairs"
 
 # The private network the hub reads the apps' tools on. External in every compose file, so it is
 # created here (and by an app's deploy) when missing; whichever starts first makes it.

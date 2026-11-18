@@ -16,4 +16,4 @@ USER node
 EXPOSE 3111
 # The tables are created or updated before the server starts. The MCP stdio entry runs in the same container:
 #   docker exec -i shared-ai-api-1 node dist/mcp-stdio.js
-CMD ["sh", "-c", "node dist/migrate.js && node dist/server.js"]
+CMD ["sh", "-c", "node dist/migrate.js && exec node dist/server.js"]

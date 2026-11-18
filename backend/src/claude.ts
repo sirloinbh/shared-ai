@@ -5,7 +5,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 
 import type { Db } from './db.js';
-import { monthTokens, recordUsage } from './usage.js';
+import { monthTokens, recordUsage, type UsageRow } from './usage.js';
 
 /** The one SDK method this service uses, so a fake can stand in for the client in tests. */
 export type MessagesClient = {
@@ -40,16 +40,20 @@ export type ClaudeCallerOptions = {
   /** AI_MONTHLY_TOKEN_LIMIT */
   monthlyTokenLimit: number;
   now?: () => Date;
+  log?: (line: string) => void;
 };
 
 export class ClaudeCaller {
   private readonly options: Required<ClaudeCallerOptions>;
 
   constructor(options: ClaudeCallerOptions) {
-    this.options = { now: () => new Date(), ...options };
+    this.options = { now: () => new Date(), log: (line) => console.error(line), ...options };
   }
 
-  /** Throws BudgetExceededError when this month's tokens reached the limit. */
+  /**
+   * Throws BudgetExceededError when this month's tokens reached the limit. It is a soft cap below the Console limit:
+   * the request that crosses it still finishes, and requests running at the same time are each checked on their own.
+   */
   async checkBudget(): Promise<void> {
     const used = await monthTokens(this.options.db, this.options.now());
     if (used >= this.options.monthlyTokenLimit) throw new BudgetExceededError(used, this.options.monthlyTokenLimit);
@@ -64,7 +68,7 @@ export class ClaudeCaller {
     try {
       message = await this.options.client.messages.create(params);
     } catch (err) {
-      await recordUsage(this.options.db, {
+      await this.record({
         ...base,
         model: params.model,
         inputTokens: 0,
@@ -79,7 +83,7 @@ export class ClaudeCaller {
       throw err;
     }
     const { usage } = message;
-    await recordUsage(this.options.db, {
+    await this.record({
       ...base,
       model: message.model,
       inputTokens: usage.input_tokens,
@@ -92,5 +96,14 @@ export class ClaudeCaller {
       errorCode: null,
     });
     return message;
+  }
+
+  /** A row that cannot be written is logged; it must not lose a paid answer or hide the request's own error. */
+  private async record(row: UsageRow): Promise<void> {
+    try {
+      await recordUsage(this.options.db, row);
+    } catch (err) {
+      this.options.log(`claude: usage row not written (${row.model}, ${row.inputTokens + row.outputTokens} tokens): ${err instanceof Error ? err.message : String(err)}`);
+    }
   }
 }

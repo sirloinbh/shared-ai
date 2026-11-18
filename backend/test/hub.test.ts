@@ -103,7 +103,7 @@ test('an app that stops answering drops out, comes back when it answers, and eac
   }
 });
 
-test('a call goes to the app with a token for that app, the client, and both scopes by default', async () => {
+test('a call goes to the app with a token for that app, the client, and only the scope the tool needs', async () => {
   const app = await startFakeApp('workout-memo', publicKey);
   try {
     const hub = new ToolHub({ apps: [{ name: 'workout-memo', url: app.url }], signer, owner: 'user-1', log: quiet });
@@ -112,9 +112,11 @@ test('a call goes to the app with a token for that app, the client, and both sco
     assert.deepEqual(result, { tool: 'add_workout', echo: { date: '2026-11-18' } });
     assert.deepEqual(app.state.calls[0], {
       tool: 'add_workout',
-      caller: { owner: 'user-1', client: 'stdio', scopes: ['workout-memo:read', 'workout-memo:write'] },
+      caller: { owner: 'user-1', client: 'stdio', scopes: ['workout-memo:write'] },
       input: { date: '2026-11-18' },
     });
+    await hub.call('workout_memo__list_workouts', { from: '2026-11-01', to: '2026-11-18' }, { client: 'stdio' });
+    assert.deepEqual(app.state.calls[1]?.caller.scopes, ['workout-memo:read'], 'a read call carries no write scope');
   } finally {
     await app.close();
   }
@@ -125,7 +127,7 @@ test('the app decides the scope; its refusal and unknown tools come back as Tool
   try {
     const hub = new ToolHub({ apps: [{ name: 'workout-memo', url: app.url }], signer, owner: 'user-1', log: quiet });
     await hub.refresh();
-    // Scopes for another app never reach this app's token.
+    // A scope the caller does not hold is not granted; the app refuses the call.
     await assert.rejects(
       hub.call('workout_memo__add_workout', {}, { client: 'ai-shell', scopes: ['workout-memo:read', 'study-log:write'] }),
       (err: unknown) => err instanceof ToolCallError && err.status === 403 && /workout-memo:write/.test(err.message),

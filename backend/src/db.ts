@@ -36,10 +36,10 @@ type Client = Db & { release: () => void };
 export async function migrate(pool: { connect: () => Promise<Client> }): Promise<string[]> {
   const client = await pool.connect();
   const applied: string[] = [];
+  // One migrator at a time, even if two containers start together; the lock comes before the first DDL.
+  await client.query('select pg_advisory_lock(611)');
   try {
     await client.query('create table if not exists schema_migrations (id text primary key, applied_at timestamptz not null default now())');
-    // One migrator at a time, even if two containers start together.
-    await client.query('select pg_advisory_lock(611)');
     const done = new Set((await client.query<{ id: string }>('select id from schema_migrations')).rows.map((r) => r.id));
     for (const m of MIGRATIONS) {
       if (done.has(m.id)) continue;
@@ -54,8 +54,8 @@ export async function migrate(pool: { connect: () => Promise<Client> }): Promise
         throw err;
       }
     }
-    await client.query('select pg_advisory_unlock(611)');
   } finally {
+    await client.query('select pg_advisory_unlock(611)').catch(() => undefined);
     client.release();
   }
   return applied;
