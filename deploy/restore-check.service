@@ -1,0 +1,13 @@
+[Unit]
+Description=shared-ai weekly restore check of the newest database dump
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=ubuntu
+Group=docker
+WorkingDirectory=/opt/shared-ai
+ExecStart=/bin/bash -c 'cp /opt/shared-ai/deploy/backup.sh /tmp/shared-ai-restore-check.sh && exec /bin/bash /tmp/shared-ai-restore-check.sh verify'
+TimeoutStartSec=30min
+Nice=10
