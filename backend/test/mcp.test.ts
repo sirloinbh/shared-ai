@@ -8,7 +8,7 @@ import { createInterface } from 'node:readline';
 import test from 'node:test';
 
 import { createSigner } from '../src/signing.js';
-import { startFakeApp } from './fake-app.js';
+import { startFakeApp, WORKOUT_TOOLS } from './fake-app.js';
 
 const backend = path.join(import.meta.dirname, '..');
 const privatePem = generateKeyPairSync('ed25519').privateKey.export({ type: 'pkcs8', format: 'pem' }).toString();
@@ -81,6 +81,59 @@ test('the stdio MCP server lists app tools as <app>__<tool> and calls them throu
     };
     assert.equal(failed.isError, true);
     assert.match(failed.content[0]!.text, /workout-memo: down/);
+  } finally {
+    await mcp.stop();
+    await app.close();
+  }
+});
+
+const initialize = async (mcp: ReturnType<typeof startStdio>) => {
+  await mcp.request('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'test', version: '1' } });
+  mcp.notify('notifications/initialized');
+};
+
+test('a tool whose inputSchema has no type is listed with type object', async () => {
+  const app = await startFakeApp('workout-memo', publicKey, [{ ...WORKOUT_TOOLS[1], inputSchema: { properties: { date: { type: 'string' } } } }]);
+  const mcp = startStdio({ AI_TOOLS_SIGNING_KEY: privatePem.replace(/\n/g, '\n'), AI_TOOL_APPS: `workout-memo=${app.url}`, AI_OWNER_ID: 'user-1' });
+  try {
+    await initialize(mcp);
+    const list = (await mcp.request('tools/list')).result as { tools: { name: string; inputSchema: Record<string, unknown> }[] };
+    assert.equal(list.tools.length, 1);
+    assert.equal(list.tools[0]!.inputSchema.type, 'object');
+    assert.deepEqual(list.tools[0]!.inputSchema.properties, { date: { type: 'string' } });
+  } finally {
+    await mcp.stop();
+    await app.close();
+  }
+});
+
+test('a hub refresh that adds or removes a tool sends notifications/tools/list_changed over stdio', async () => {
+  const app = await startFakeApp('workout-memo', publicKey, [WORKOUT_TOOLS[0]!]);
+  const mcp = startStdio({
+    AI_TOOLS_SIGNING_KEY: privatePem.replace(/\n/g, '\n'),
+    AI_TOOL_APPS: `workout-memo=${app.url}`,
+    AI_OWNER_ID: 'user-1',
+    AI_TOOLS_REFRESH_SECONDS: '1',
+  });
+  const waitForChange = async (count: number) => {
+    const deadline = Date.now() + 10_000;
+    while (mcp.notifications.filter((m) => m === 'notifications/tools/list_changed').length < count) {
+      if (Date.now() > deadline) throw new Error(`no list_changed #${count}; stderr: ${mcp.stderr()}`);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  };
+  const names = async () => ((await mcp.request('tools/list')).result as { tools: { name: string }[] }).tools.map((t) => t.name).sort();
+  try {
+    await initialize(mcp);
+    assert.deepEqual(await names(), ['workout_memo__list_workouts']);
+
+    app.state.tools = WORKOUT_TOOLS;
+    await waitForChange(1);
+    assert.deepEqual(await names(), ['workout_memo__add_workout', 'workout_memo__list_workouts']);
+
+    app.state.tools = [WORKOUT_TOOLS[1]!];
+    await waitForChange(2);
+    assert.deepEqual(await names(), ['workout_memo__add_workout']);
   } finally {
     await mcp.stop();
     await app.close();
