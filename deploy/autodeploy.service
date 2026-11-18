@@ -1,0 +1,14 @@
+[Unit]
+Description=shared-ai pull-based deployment of origin/main
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+Group=docker
+WorkingDirectory=/opt/shared-ai
+# Copied first: the deploy moves to a new commit while this script runs.
+ExecStart=/bin/bash -c 'cp /opt/shared-ai/deploy/autodeploy.sh /tmp/shared-ai-autodeploy.sh && exec /bin/bash /tmp/shared-ai-autodeploy.sh'
+TimeoutStartSec=45min
+Nice=10
