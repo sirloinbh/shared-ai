@@ -139,3 +139,23 @@ test('the app decides the scope; its refusal and unknown tools come back as Tool
     await app.close();
   }
 });
+
+test('two refreshes started together join one run: one list request per app', async () => {
+  const one = await startFakeApp('workout-memo', publicKey);
+  const two = await startFakeApp('study-log', publicKey, [{ ...WORKOUT_TOOLS[0]!, scope: 'study-log:read' }]);
+  try {
+    const hub = new ToolHub({ apps: [{ name: 'workout-memo', url: one.url }, { name: 'study-log', url: two.url }], signer, owner: 'user-1', log: quiet });
+    const first = hub.refresh();
+    const second = hub.refresh();
+    assert.equal(first, second, 'the second call joins the running refresh');
+    await Promise.all([first, second]);
+    assert.equal(one.state.lists.length, 1);
+    assert.equal(two.state.lists.length, 1);
+    // Once the run is over, the next refresh starts a new one.
+    await hub.refresh();
+    assert.equal(one.state.lists.length, 2);
+  } finally {
+    await one.close();
+    await two.close();
+  }
+});
