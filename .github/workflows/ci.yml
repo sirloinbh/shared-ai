@@ -1,0 +1,15 @@
+# Managed file. Edit it in sirloinbh/project-standards templates/service/.github/workflows/
+# Calls the central shared CI (reusable-service-ci) pinned to the central commit that was synced.
+name: ci
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: sirloinbh/project-standards/.github/workflows/reusable-service-ci.yml@6e3975b8919d6f825c8b5089ca38b16641e987d5
+    with:
+      node-version: '24.21.0'
+      npm-version: '11.19.0'
