@@ -8,10 +8,10 @@ import type { AddressInfo } from 'node:net';
 
 import express from 'express';
 
-export type ToolCaller = { owner: string; client: string; scopes: readonly string[] };
+export type ToolCaller = { owner: string; client: string; scopes: readonly string[]; jti: string | null; tool: string | null; exp: number };
 
 // --- copied from templates/app/backend/src/standard/tools.ts (8090223) ---
-export const MAX_TOKEN_SECONDS = 300;
+export const MAX_TOKEN_SECONDS = 120;
 const CLOCK_SKEW_SECONDS = 30;
 
 class CallError extends Error {
@@ -51,7 +51,7 @@ export function verifyCallToken(token: string, key: KeyObject, app: string, now 
   }
   if (!valid) throw new CallError(401, 'Invalid call token');
   const seconds = Math.floor(now / 1000);
-  const { iss, aud, sub, client, scope, iat, exp } = claims;
+  const { iss, aud, sub, client, scope, iat, exp, jti, tool } = claims;
   if (iss !== 'shared-ai' || aud !== app) throw new CallError(401, 'Call token is not for this app');
   if (typeof iat !== 'number' || typeof exp !== 'number' || iat > seconds + CLOCK_SKEW_SECONDS) {
     throw new CallError(401, 'Invalid call token');
@@ -62,7 +62,10 @@ export function verifyCallToken(token: string, key: KeyObject, app: string, now 
   if (typeof sub !== 'string' || !sub || typeof client !== 'string' || !client || typeof scope !== 'string') {
     throw new CallError(401, 'Invalid call token');
   }
-  return { owner: sub, client, scopes: scope.split(' ').filter(Boolean) };
+  if ((jti !== undefined && (typeof jti !== 'string' || !jti)) || (tool !== undefined && (typeof tool !== 'string' || !tool))) {
+    throw new CallError(401, 'Invalid call token');
+  }
+  return { owner: sub, client, scopes: scope.split(' ').filter(Boolean), jti: jti ?? null, tool: tool ?? null, exp };
 }
 // --- end of copy ---
 
@@ -90,17 +93,25 @@ export const WORKOUT_TOOLS = [
   },
 ];
 
-export type FakeCall = { tool: string; caller: ToolCaller; input: unknown };
+/** What the tests compare: who called, without the per-token claims. */
+const callerOf = ({ owner, client, scopes }: ToolCaller) => ({ owner, client, scopes });
+
+export type FakeCall = { tool: string; caller: ReturnType<typeof callerOf>; input: unknown };
 
 /** Serves a fake app on a free port. `tools` and `down` can change while it runs. */
 export async function startFakeApp(app: string, publicKey: KeyObject, tools: unknown[] = WORKOUT_TOOLS) {
-  const state = { tools, down: false, calls: [] as FakeCall[], lists: [] as ToolCaller[] };
+  const state = { tools, down: false, calls: [] as FakeCall[], lists: [] as ReturnType<typeof callerOf>[] };
   const server = express();
   server.use(express.json());
-  const check = (req: express.Request) => {
+  const seen = new Set<string>();
+  const check = (req: express.Request, tool: string) => {
     const match = /^Bearer (\S+)$/.exec(req.get('authorization') ?? '');
     if (!match?.[1]) throw new CallError(401, 'Call token missing');
-    return verifyCallToken(match[1], publicKey, app);
+    const verified = verifyCallToken(match[1], publicKey, app);
+    if (verified.tool !== tool) throw new CallError(401, 'Call token is not for this tool');
+    if (!verified.jti || seen.has(verified.jti)) throw new CallError(401, 'Call token was already used');
+    seen.add(verified.jti);
+    return verified;
   };
   const fail = (res: express.Response, err: unknown) => {
     if (err instanceof CallError) res.status(err.status).json({ error: err.message });
@@ -109,7 +120,7 @@ export async function startFakeApp(app: string, publicKey: KeyObject, tools: unk
   server.use((_req, res, next) => (state.down ? void res.status(503).json({ error: 'down' }) : next()));
   server.get('/internal/tools', (req, res) => {
     try {
-      state.lists.push(check(req));
+      state.lists.push(callerOf(check(req, '@list')));
       res.json({ app, tools: state.tools });
     } catch (err) {
       fail(res, err);
@@ -117,11 +128,11 @@ export async function startFakeApp(app: string, publicKey: KeyObject, tools: unk
   });
   server.post('/internal/tools/:name', (req, res) => {
     try {
-      const caller = check(req);
+      const caller = check(req, String(req.params.name));
       const tool = (state.tools as { name: string; scope: string }[]).find((t) => t.name === req.params.name);
       if (!tool) throw new CallError(404, 'Tool not found');
       if (!caller.scopes.includes(tool.scope)) throw new CallError(403, `Scope ${tool.scope} is required`);
-      state.calls.push({ tool: tool.name, caller, input: req.body });
+      state.calls.push({ tool: tool.name, caller: callerOf(caller), input: req.body });
       res.json({ result: { tool: tool.name, echo: req.body } });
     } catch (err) {
       fail(res, err);
