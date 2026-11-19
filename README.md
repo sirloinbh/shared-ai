@@ -84,6 +84,30 @@ Get-Clipboard | node project-standards/tools/app-secrets.mjs set /sirloinbh/shar
 
 Success: the list command prints `[]` or only `anthropic-api-key`. Only `tools-signing-key` is `@required`; the deploy stops without it.
 
+#### No SSM permission on the PC: use the AWS console
+
+The CLI path above needs an AWS profile with `ssm:GetParameter` and `ssm:PutParameter` (and `ssm:GetParameters`) on `/sirloinbh/*`. If the only profile on the PC is the Terraform one (`workout-personal`), it has none of those; use the console instead, signed in as the account owner.
+
+1. **Check the names.** Console, region **Asia Pacific (Seoul) ap-northeast-2**, Systems Manager, Parameter Store, My parameters. Search `/sirloinbh/shared-ai` and `/sirloinbh/shared/ai-tools`. You need `/sirloinbh/shared-ai/tools-signing-key`, `/sirloinbh/shared/ai-tools-public-key` and (optional) `/sirloinbh/shared-ai/anthropic-api-key`. Do not open a value to check it; a name in the list is enough.
+2. **Make the key pair on the PC without printing it**, in the folder that holds both clones:
+
+   ```powershell
+   node shared-ai/backend/scripts/signing-key.mjs --public-out ai-public.txt > ai-private.txt
+   ```
+
+   Both files hold one line with `\n` escapes (not real line breaks); that is the format the server expects.
+3. **Create the private key.** Create parameter: Name `/sirloinbh/shared-ai/tools-signing-key`, Tier Standard, Type **SecureString**, KMS key source "My current account", the default `alias/aws/ssm`. Value: put the file in the clipboard with `Get-Content ai-private.txt -Raw | Set-Clipboard`, paste it into the Value box, and check it is one line starting with `-----BEGIN PRIVATE KEY-----\n`. Create parameter.
+4. **Create the public key** the same way: Name `/sirloinbh/shared/ai-tools-public-key`, Type SecureString, Value from `Get-Content ai-public.txt -Raw | Set-Clipboard` (one line starting with `-----BEGIN PUBLIC KEY-----\n`).
+5. **Optional Claude key**: Name `/sirloinbh/shared-ai/anthropic-api-key`, Type SecureString, Value the new key from the Console (ADR-0019).
+6. **Delete the local files and clear the clipboard**:
+
+   ```powershell
+   Remove-Item ai-private.txt, ai-public.txt
+   Set-Clipboard -Value ' '
+   ```
+
+Success: the two required names appear in My parameters with type SecureString. Run it once: a second pair would sign with a key the apps do not trust, because the apps read the public key from SSM.
+
 ### 3. Proxy entry (PC)
 
 In `project-standards`, on updated main (the generated config already has `ai.daysofme.com` -> `127.0.0.1:8111`):
