@@ -1,5 +1,5 @@
 {
-  "centralSha": "c610b151c2236738f993629c5da6be74e71bb7c2",
+  "centralSha": "43f8038b3b7716572afed4fb17c12e1cb166ca07",
   "profile": "service",
   "project": null,
   "files": {
@@ -10,7 +10,7 @@
     },
     ".claude/hooks/block-package-installs.mjs": {
       "mode": "full",
-      "sha256": "56de5f100cf31c4acf790c7277912779af129786596333dc206bbf1a134f756f",
+      "sha256": "10a3bdaa5597bde0580451adf8515b9e3997714b6fc2e82419f24ee28a5bfc19",
       "source": "templates/common/.claude/hooks/block-package-installs.mjs"
     },
     ".claude/hooks/pc-setup-notice.mjs": {
@@ -45,7 +45,7 @@
     },
     ".claude/skills/std-implementation/SKILL.md": {
       "mode": "full",
-      "sha256": "ab49c8037c83f19806839ac111db59bb0403aab6be7d57673a9ecb36ff357d2a",
+      "sha256": "3088e70c5cfc6a2c72baf94130692b9af2d3834eea5293ab0d3e3742c59a71ae",
       "source": "templates/common/skills/std-implementation/SKILL.md"
     },
     ".claude/skills/std-session-notes/SKILL.md": {
@@ -90,7 +90,7 @@
     },
     ".github/workflows/ci.yml": {
       "mode": "full",
-      "sha256": "9397e88ca9a5121205071af3854e33915132dc5d8e36d0a7b07c1d9553f867d1",
+      "sha256": "8a491415b31e06b14384e936a0a1caf8bbb98399e1722c1afb785b1aced31b10",
       "source": "templates/service/.github/workflows/ci.yml.tmpl"
     },
     ".gitignore": {
@@ -105,7 +105,7 @@
     },
     ".standards/check.mjs": {
       "mode": "full",
-      "sha256": "579f90cb538c008ad1d63fe4016cda9b214f9d7e3fb0feab3ab54f2d864fbbfa",
+      "sha256": "271a730f1ffc9f3275f0ac10c2e0baff52a584b0036f7bbe4f86f57fa0327f4a",
       "source": "scripts/standards-check.mjs"
     },
     ".standards/ioc-scan.mjs": {
@@ -135,7 +135,7 @@
     },
     ".standards/lib/render.mjs": {
       "mode": "full",
-      "sha256": "8b832e4746f8b731d087642551f837190dd20172a1f7789c153efae55d699817",
+      "sha256": "109f91dba8789a498bd342610e3ebda04662a74b420694efbf2beab8bdbd058d",
       "source": "scripts/lib/render.mjs"
     },
     ".standards/lockfiles.mjs": {
@@ -200,7 +200,7 @@
     },
     "deploy/deploy.sh": {
       "mode": "full",
-      "sha256": "a3c1b69530f1d9ed6fd6e81847ea4f269c08c2a1325319e596369be97343d80c",
+      "sha256": "2df9601f145f1d78e4715f8dae503d6bd4d979795add7864c2b4e4af81e1ea3f",
       "source": "templates/service/deploy/deploy.sh.tmpl"
     },
     "deploy/install-autodeploy.sh": {
@@ -220,7 +220,7 @@
     },
     "deploy/remote-deploy.sh": {
       "mode": "full",
-      "sha256": "06d4d8868bb5753a58b82a81046fbe4c4086ca6f67f83d4ac56afb610728ce30",
+      "sha256": "0b2dfaf74da5fd45783ac9a640b20f3750e4791605e5b564801b34bc38095eca",
       "source": "templates/deploy/deploy/remote-deploy.sh.tmpl"
     },
     "deploy/restore-check.service": {
@@ -260,7 +260,7 @@
     },
     "skills/std-implementation/SKILL.md": {
       "mode": "full",
-      "sha256": "ab49c8037c83f19806839ac111db59bb0403aab6be7d57673a9ecb36ff357d2a",
+      "sha256": "3088e70c5cfc6a2c72baf94130692b9af2d3834eea5293ab0d3e3742c59a71ae",
       "source": "templates/common/skills/std-implementation/SKILL.md"
     },
     "skills/std-session-notes/SKILL.md": {
