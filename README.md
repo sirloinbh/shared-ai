@@ -49,18 +49,56 @@ The MCP test starts the real stdio entry point against a fake app that checks to
 
 ## Server deploy [User]
 
-Before the first deploy: the `ai` DNS record and SSM read access for `shared-ai` (shared-aws-infrastructure), the proxy entry (project-standards `docs/server-proxy.md`, "Changes later"), and the keys in SSM:
+First install, in order. Each step says where to run it and what success looks like. `server-ssh` and `server-ip` are the project-standards tools (`tools/install.ps1`, then a new terminal); they connect to the server without a typed address. Keep every `server-ssh` command on one line and free of double quotes (Windows PowerShell 5.1 drops them).
+
+### 1. DNS record and SSM read access (PC)
+
+In `D:\github\shared-aws-infrastructure`, on updated main:
 
 ```powershell
-# On the PC, in the folder that holds both clones
+terraform plan "-out=ai.tfplan"
+terraform apply ai.tfplan
+Resolve-DnsName ai.daysofme.com -Type A
+```
+
+- The plan must say `Plan: 1 to add, 2 to change, 0 to destroy`: the `ai` DNS record, the server reader policy (adds the `/sirloinbh/shared-ai/*` path), and the IAM user `study_log_files`. The last one **removes a tag that was added by hand in the console** (its key is an access key ID); it is a label only, but it is a change you did not type. Anything to destroy or replace: stop.
+- Success: `Resolve-DnsName` answers the same address as `server-ip`.
+
+### 2. Keys in SSM (PC)
+
+Use the AWS profile that can write SSM (`$env:SIRLOINBH_AWS_PROFILE`). First list the missing names (names only, no values):
+
+```powershell
+aws ssm get-parameters --names /sirloinbh/shared-ai/tools-signing-key /sirloinbh/shared-ai/anthropic-api-key /sirloinbh/shared/ai-tools-public-key --query InvalidParameters --profile <profile> --region ap-northeast-2
+```
+
+`[]` means all three exist. Create only the ones listed, in the folder that holds both clones:
+
+```powershell
 node shared-ai/backend/scripts/signing-key.mjs --public-out ai-public.txt | node project-standards/tools/app-secrets.mjs set /sirloinbh/shared-ai/tools-signing-key
 Get-Content ai-public.txt | node project-standards/tools/app-secrets.mjs set /sirloinbh/shared/ai-tools-public-key
 Remove-Item ai-public.txt
-# A new Claude API key for shared-ai from the Console (ADR-0019), from the clipboard
+# Optional (Claude calls stay off without it): a new Claude API key for shared-ai from the Console (ADR-0019), from the clipboard
 Get-Clipboard | node project-standards/tools/app-secrets.mjs set /sirloinbh/shared-ai/anthropic-api-key
 ```
 
-First time, in an `ssh` session on the server:
+Success: the list command prints `[]` or only `anthropic-api-key`. Only `tools-signing-key` is `@required`; the deploy stops without it.
+
+### 3. Proxy entry (PC)
+
+In `project-standards`, on updated main (the generated config already has `ai.daysofme.com` -> `127.0.0.1:8111`):
+
+```powershell
+node scripts/proxy-config.mjs
+$k = "$HOME/.ssh/workout-memo-lightsail"; $s = "ubuntu@$(server-ip)"
+scp -i $k .local/proxy/nginx/apps.conf "${s}:/tmp/apps.conf"
+server-ssh sudo cp /tmp/apps.conf /opt/project-standards/proxy/nginx/apps.conf
+server-ssh cd /opt/project-standards/proxy && sudo bash cert.sh reload
+```
+
+Success: the reload prints no error (it runs `nginx -t` first and does not reload a broken config). The wildcard certificate already covers `ai`.
+
+### 4. First deploy (server: `server-ssh`)
 
 ```bash
 sudo install -d -o ubuntu -g ubuntu /opt/shared-ai
@@ -68,16 +106,37 @@ git clone https://github.com/sirloinbh/shared-ai.git /opt/shared-ai
 cd /opt/shared-ai && bash deploy/deploy.sh
 ```
 
-`deploy/deploy.sh` creates `.env` with a new DB password on the first run, reads the `@ssm=` keys with the server's reader key, creates the Docker network `shared-ai` when missing, builds and starts the containers under the shared deploy lock, and waits for `/api/health`. Later updates: `cd /opt/shared-ai && bash deploy/deploy.sh`. Then record the memory of `shared-ai-api-1` and `shared-ai-db-1` (`docker stats --no-stream`) in project-standards `docs/costs.md`.
+`deploy/deploy.sh` creates `.env` with a new DB password on the first run (`deploy/bootstrap-env.sh`), reads the `@ssm=` keys with the server's reader key, creates the Docker network `shared-ai` when missing, builds and starts the containers under the shared deploy lock, and waits for `/api/health`. Later updates: `cd /opt/shared-ai && bash deploy/deploy.sh` (it fast-forwards to `origin/main` first; `--no-pull` deploys the current checkout).
 
-### Automatic deploys and backups
+Success:
 
-The same timers as shared-auth, installed once as root:
+- It prints `deploy: created .env with a new DB password` (first run only) and `deployed <12 characters>`, and no `could not read ... @required` line. On `health check failed`, stop and look at `docker compose logs --tail 50 api` (do not paste `.env`).
+- `curl -fsS http://127.0.0.1:8111/api/health` prints `{"status":"ok"}`.
+- `cat .deployed` equals `git rev-parse --short=12 HEAD`.
+- `docker ps --format '{{.Names}} {{.Status}}'` shows `shared-ai-api-1` Up and `shared-ai-db-1` Up (healthy).
+
+### 5. Automatic deploys and backups (server)
 
 ```bash
 sudo bash /opt/shared-ai/deploy/install-autodeploy.sh
 sudo bash /opt/shared-ai/deploy/install-backup.sh
 ```
+
+Success: both list their timers (table below). After 2 to 3 minutes `journalctl -u shared-ai-autodeploy -n 20 --no-pager` shows no error.
+
+### 6. Public check (PC, from an allowed IP)
+
+```powershell
+curl.exe -sS -o NUL -w "%{http_code}`n" https://ai.daysofme.com/api/health
+```
+
+Success: `200`. `502` means nothing listens on 8111 (step 4); a timeout means DNS (step 1) or the firewall.
+
+### 7. Record the memory
+
+`docker stats --no-stream` on the server: record the memory of `shared-ai-api-1` and `shared-ai-db-1` in project-standards `docs/costs.md`.
+
+### Automatic deploys and backups: what the timers do
 
 | Timer | What it does |
 |---|---|
