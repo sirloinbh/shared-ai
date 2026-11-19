@@ -3,7 +3,7 @@
 // not answer drops out of the list until it answers again. The contract is the managed file
 // backend/src/standard/tools.ts in each app (docs/ai-tools.md in project-standards).
 import type { AppTarget } from './apps.js';
-import type { Signer } from './signing.js';
+import { LIST_TOOL, type Signer } from './signing.js';
 
 export type ToolAnnotations = { readOnlyHint: boolean; destructiveHint: boolean };
 
@@ -160,7 +160,7 @@ export class ToolHub {
     const app = this.options.apps.find((a) => a.name === tool.app);
     if (!app) throw new ToolCallError(404, `Unknown app ${tool.app}`);
     const scopes = !context.scopes || context.scopes.includes(tool.scope) ? [tool.scope] : [];
-    const token = this.options.signer.sign({ app: app.name, owner: this.options.owner, client: context.client, scopes });
+    const token = this.options.signer.sign({ app: app.name, owner: this.options.owner, client: context.client, scopes, tool: tool.tool });
     let response: Response;
     try {
       response = await this.options.fetch(`${app.url}/internal/tools/${encodeURIComponent(tool.tool)}`, {
@@ -182,7 +182,7 @@ export class ToolHub {
 
   private async listApp(app: AppTarget): Promise<HubTool[] | null> {
     try {
-      const token = this.options.signer.sign({ app: app.name, owner: this.options.owner, client: 'shared-ai', scopes: [] });
+      const token = this.options.signer.sign({ app: app.name, owner: this.options.owner, client: 'shared-ai', scopes: [], tool: LIST_TOOL });
       const response = await this.options.fetch(`${app.url}/internal/tools`, {
         headers: { authorization: `Bearer ${token}` },
         signal: AbortSignal.timeout(LIST_TIMEOUT_MS),

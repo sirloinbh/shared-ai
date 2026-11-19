@@ -14,8 +14,12 @@ const publicKey = createPublicKey(signer.publicKeyPem());
 const quiet = () => {};
 
 test('a signed call token passes the app check with the owner, client, and scopes', () => {
-  const token = signer.sign({ app: 'workout-memo', owner: 'user-1', client: 'stdio', scopes: ['workout-memo:read', 'workout-memo:write'] });
-  assert.deepEqual(verifyCallToken(token, publicKey, 'workout-memo'), { owner: 'user-1', client: 'stdio', scopes: ['workout-memo:read', 'workout-memo:write'] });
+  const token = signer.sign({ app: 'workout-memo', owner: 'user-1', client: 'stdio', scopes: ['workout-memo:read', 'workout-memo:write'], tool: 'add_workout' });
+  const verified = verifyCallToken(token, publicKey, 'workout-memo');
+  assert.deepEqual([verified.owner, verified.client, verified.scopes, verified.tool], ['user-1', 'stdio', ['workout-memo:read', 'workout-memo:write'], 'add_workout']);
+  assert.match(verified.jti ?? '', /^[0-9a-f-]{36}$/);
+  const again = signer.sign({ app: 'workout-memo', owner: 'user-1', client: 'stdio', scopes: [], tool: 'add_workout' });
+  assert.notEqual(verifyCallToken(again, publicKey, 'workout-memo').jti, verified.jti, 'every token has its own jti');
   const claims = JSON.parse(Buffer.from(token.split('.')[1]!, 'base64url').toString()) as { iat: number; exp: number; iss: string };
   assert.equal(claims.iss, 'shared-ai');
   assert.equal(claims.exp - claims.iat, TOKEN_SECONDS);
@@ -23,9 +27,9 @@ test('a signed call token passes the app check with the owner, client, and scope
 });
 
 test('a call token is only for its app, and expires', () => {
-  const token = signer.sign({ app: 'workout-memo', owner: 'user-1', client: 'stdio', scopes: [] });
+  const token = signer.sign({ app: 'workout-memo', owner: 'user-1', client: 'stdio', scopes: [], tool: 'list_workouts' });
   assert.throws(() => verifyCallToken(token, publicKey, 'study-log'), /not for this app/);
-  const old = signer.sign({ app: 'workout-memo', owner: 'user-1', client: 'stdio', scopes: [] }, Date.now() - 10 * 60_000);
+  const old = signer.sign({ app: 'workout-memo', owner: 'user-1', client: 'stdio', scopes: [], tool: 'list_workouts' }, Date.now() - 10 * 60_000);
   assert.throws(() => verifyCallToken(old, publicKey, 'workout-memo'), /expired/);
   const other = createPublicKey(generateKeyPairSync('ed25519').publicKey.export({ type: 'spki', format: 'pem' }));
   assert.throws(() => verifyCallToken(token, other, 'workout-memo'), /Invalid call token/);
