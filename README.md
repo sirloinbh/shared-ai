@@ -96,7 +96,7 @@ The CLI path above needs an AWS profile with `ssm:GetParameter` and `ssm:PutPara
    ```
 
    Both files hold one line with `\n` escapes (not real line breaks); that is the format the server expects.
-3. **Create the private key.** Create parameter: Name `/sirloinbh/shared-ai/tools-signing-key`, Tier Standard, Type **SecureString**, KMS key source "My current account", the default `alias/aws/ssm`. Value: put the file in the clipboard with `Get-Content ai-private.txt -Raw | Set-Clipboard`, paste it into the Value box, and check it is one line starting with `-----BEGIN PRIVATE KEY-----\n`. Create parameter.
+3. **Create the private key.** Create parameter: Name `/sirloinbh/shared-ai/tools-signing-key`, Tier Standard, Type **SecureString**, KMS key source "My current account", the default `alias/aws/ssm`. Value: put the file in the clipboard with `Get-Content ai-private.txt -Raw | Set-Clipboard`, paste it into the Value box, and check it is one line that starts with five dashes and `BEGIN PRIVATE KEY` (the same as the public key below, with `PUBLIC`). Create parameter.
 4. **Create the public key** the same way: Name `/sirloinbh/shared/ai-tools-public-key`, Type SecureString, Value from `Get-Content ai-public.txt -Raw | Set-Clipboard` (one line starting with `-----BEGIN PUBLIC KEY-----\n`).
 5. **Optional Claude key**: Name `/sirloinbh/shared-ai/anthropic-api-key`, Type SecureString, Value the new key from the Console (ADR-0019).
 6. **Delete the local files and clear the clipboard**:
