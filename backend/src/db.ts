@@ -28,6 +28,20 @@ export const MIGRATIONS: readonly { id: string; sql: string }[] = [
       create index ai_usage_created_at on ai_usage (created_at);
     `,
   },
+  {
+    // #612: the AI shell's chat history, the whole Messages API history of one conversation per row.
+    id: '002_chat',
+    sql: `
+      create table chat_conversations (
+        id uuid primary key,
+        owner text not null,
+        messages jsonb not null default '[]',
+        created_at timestamptz not null default now(),
+        updated_at timestamptz not null default now()
+      );
+      create index chat_conversations_owner on chat_conversations (owner, updated_at desc);
+    `,
+  },
 ];
 
 type Client = Db & { release: () => void };
