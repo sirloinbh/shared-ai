@@ -48,6 +48,17 @@ Every key is in [.env.example](.env.example). On the server the secret values co
 | `/sirloinbh/shared-ai/anthropic-api-key` | `ANTHROPIC_API_KEY` | shared-ai; optional (Claude calls are off without it) |
 | `/sirloinbh/shared/ai-tools-public-key` | `AI_TOOLS_PUBLIC_KEY` | each app that serves tools |
 
+## npm overrides
+
+`backend/package.json` pins four transitive packages with `overrides`. None was added for a security advisory (none is recorded in the history); each one pins the range a parent asks for to the exact version in the lock file, in line with the exact-pin rule (`backend/.npmrc` `save-exact`). Without the pin npm could float to a newer release inside the range (today `router` 2.3.0, `standardwebhooks` 1.3.0).
+
+| Override | Pulled in by | Remove when |
+|---|---|---|
+| `@babel/runtime` 7.29.10 | `json-schema-to-ts` (`^7.18.3`), via `@anthropic-ai/sdk` | the lock file alone is accepted as the pin, or `json-schema-to-ts` drops it |
+| `encodeurl` 2.0.1 | `express`, `send`, `serve-static`, `finalhandler` (`^2.0.0`) | same; or `express` drops it |
+| `router` 2.2.0 | `express` (`^2.2.0`) | same; or the pinned `express` itself requires a newer `router` |
+| `standardwebhooks` 1.1.1 | `@anthropic-ai/sdk` (`^1.0.0`) | same; or `@anthropic-ai/sdk` is raised and requires a newer one |
+
 ## Local run and tests
 
 ```bash
