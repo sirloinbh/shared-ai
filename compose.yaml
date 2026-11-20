@@ -17,6 +17,8 @@ services:
     build: { context: ./backend, secrets: [npm_token] }
     image: shared-ai-backend:${IMAGE_TAG:-local}
     restart: unless-stopped
+    # A tiny init as PID 1 passes SIGTERM on to node, so `docker compose stop api` ends at once instead of after 10 s (#7).
+    init: true
     depends_on:
       db: { condition: service_healthy }
     environment:
@@ -32,6 +34,11 @@ services:
       # The AI shell (/api/chat) asks the shared sign-in who is calling, over the shared-auth network (#612).
       AUTH_INTERNAL_URL: ${AUTH_INTERNAL_URL:-http://shared-auth-api:3110}
       AI_ROOT_DOMAIN: ${AI_ROOT_DOMAIN:-daysofme.com}
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q -O /dev/null http://127.0.0.1:3111/api/health']
+      interval: 5s
+      timeout: 3s
+      retries: 12
     # The server proxy forwards https://ai.<root domain> here. Locally: http://localhost:8111.
     ports: ['${WEB_BIND:-127.0.0.1}:${WEB_PORT:-8111}:3111']
     networks:
