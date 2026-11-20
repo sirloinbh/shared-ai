@@ -40,6 +40,10 @@ export type ServerConfig = HubConfig & {
   monthlyTokenLimit: number;
   anthropicApiKey: string | undefined;
   model: string;
+  /** The shared sign-in service on the shared-auth network (AUTH_INTERNAL_URL). Unset: the AI shell is off. */
+  authUrl: string | undefined;
+  /** The root domain whose subdomains may call /api/chat from a browser (AI_ROOT_DOMAIN). Unset: no browser origin. */
+  rootDomain: string | undefined;
 };
 
 /** Reads the service settings from the environment. Every key is listed in .env.example. */
@@ -51,5 +55,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
     monthlyTokenLimit: positiveInt(env, 'AI_MONTHLY_TOKEN_LIMIT'),
     anthropicApiKey: env.ANTHROPIC_API_KEY?.trim() || undefined,
     model: env.CLAUDE_MODEL?.trim() || 'claude-opus-5-5',
+    authUrl: env.AUTH_INTERNAL_URL?.trim() || undefined,
+    rootDomain: env.AI_ROOT_DOMAIN?.trim().toLowerCase() || undefined,
   };
 }

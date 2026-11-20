@@ -5,7 +5,7 @@ One AI service for every daysofme app ([ADR-0017](https://github.com/sirloinbh/p
 - **Tool hub.** On start and every 3 minutes it reads each app's tool list from `GET http://<app>-api:<api port>/internal/tools` over the private Docker network `shared-ai`, and calls a tool with `POST /internal/tools/<name>`. An app that does not answer drops out until it answers again. The tools, their scope check, and their audit rows stay in the apps ([docs/ai-tools.md](https://github.com/sirloinbh/project-standards/blob/main/docs/ai-tools.md)).
 - **Signed internal calls.** Every call carries a JWT signed here (EdDSA, Ed25519, valid 60 s): `iss` `shared-ai`, `aud` the app, `sub` the owner, `client`, and `scope` (the called app's read and write scopes). Apps check it with the public key. A client's own token is never forwarded.
 - **Integrated MCP server.** One MCP server ([`@modelcontextprotocol/server`](https://www.npmjs.com/package/@modelcontextprotocol/server) v2) lists every app's tools as `<app>__<tool>`, for example `workout_memo__list_workouts`. Stage 1 is stdio over SSH (below).
-- **Claude usage.** Every Claude request goes through one caller that first checks the monthly token budget (`AI_MONTHLY_TOKEN_LIMIT`, summed from `ai_usage` for the UTC calendar month) and then writes one `ai_usage` row: conversation, app and page, model, input, output, cache read and cache write tokens, latency, stop reason, tool call count, error code. No prompt or answer text. The AI shell's `POST /api/chat` that uses it comes with project-standards #612.
+- **Claude usage.** Every Claude request goes through one caller that first checks the monthly token budget (`AI_MONTHLY_TOKEN_LIMIT`, summed from `ai_usage` for the UTC calendar month) and then writes one `ai_usage` row: conversation, app and page, model, input, output, cache read and cache write tokens, latency, stop reason, tool call count, error code. No prompt or answer text. The AI shell's `POST /api/chat` uses it (below).
 - Express 5, PostgreSQL 17, Node 24. Tables are created by `dist/migrate.js` before the server starts.
 
 ## Endpoints
@@ -13,6 +13,18 @@ One AI service for every daysofme app ([ADR-0017](https://github.com/sirloinbh/p
 | Path | What it does |
 |---|---|
 | `/api/health` | 200 `{ status: "ok", apps: [...] }` with the apps whose tools the hub holds; 503 when the database does not answer |
+| `POST /api/chat` | One AI shell turn, answered as a server-sent event stream (below). Needs the shared sign-in session of the owner, the header `X-Requested-With: ai-shell`, and a Claude key |
+| `POST /api/chat/confirm` | The owner's Allow or Refuse for a tool call that changes data: `{ conversationId, callId, approve }`, answer 204 |
+
+## AI shell API (project-standards #612)
+
+The AI shell panel in every app (`features.aiShell`) calls this service from `https://<app>.daysofme.com` with the shared session cookie.
+
+- **Who may call.** CORS allows only `https://<label>.<AI_ROOT_DOMAIN>` (not `ai`) with credentials. Every POST needs `X-Requested-With: ai-shell`, so a preflight is forced. The session is checked with the sign-in service at `AUTH_INTERNAL_URL`, and only the user whose ID is `AI_OWNER_ID` may chat: **without `AI_OWNER_ID` nobody can**. Without `AUTH_INTERNAL_URL` the routes are not served; without a Claude key `/api/chat` answers 503.
+- **Request.** `{ conversationId?, messages: [{ role: "user", content }], context: { app, page } }`. One new user message per turn; the history is kept in `chat_conversations` by `conversationId` and sent to Claude with the tools of every app.
+- **Events** (`text/event-stream`, one JSON object per `data:` line): `text {delta}`, `tool_call {id, app, tool, input, readOnly, needsConfirmation}`, `tool_result {id, ok, summary}`, `limit {message}` (monthly budget reached), `error {message}`, `done {conversationId}`. A keep-alive comment is sent every 15 s.
+- **Confirmation.** A tool that is not read-only does not run until `POST /api/chat/confirm` approves it; the stream stays open meanwhile. No answer in 120 s, or a closed stream, counts as a refusal. Each call is made with client `ai-shell`, and the app writes its audit row.
+- Answers arrive per Claude response, not token by token (the Claude caller is not streaming yet).
 
 ## Use the tools from Claude Code on the PC (MCP over SSH)
 

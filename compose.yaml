@@ -29,6 +29,9 @@ services:
       AI_MONTHLY_TOKEN_LIMIT: ${AI_MONTHLY_TOKEN_LIMIT:-5000000}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       CLAUDE_MODEL: ${CLAUDE_MODEL:-claude-opus-5-5}
+      # The AI shell (/api/chat) asks the shared sign-in who is calling, over the shared-auth network (#612).
+      AUTH_INTERNAL_URL: ${AUTH_INTERNAL_URL:-http://shared-auth-api:3110}
+      AI_ROOT_DOMAIN: ${AI_ROOT_DOMAIN:-daysofme.com}
     # The server proxy forwards https://ai.<root domain> here. Locally: http://localhost:8111.
     ports: ['${WEB_BIND:-127.0.0.1}:${WEB_PORT:-8111}:3111']
     networks:
@@ -36,7 +39,11 @@ services:
       # The hub reads each app's /internal/tools at http://<app>-api:<api port> on this network. Apps join it
       # with the alias <app>-api; it is never published through the proxy.
       shared-ai: {}
+      shared-auth: {}
 networks:
+  # Created by the shared-auth compose project, which starts first. Locally, once: docker network create shared-auth
+  shared-auth:
+    external: true
   # Created by deploy/deploy.sh (or an app's deploy) when missing, so either side may start first.
   # Locally, once: docker network create shared-ai
   shared-ai:
