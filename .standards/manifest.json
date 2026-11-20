@@ -1,5 +1,5 @@
 {
-  "centralSha": "c8ec08e7d9887071c29524c1817ccced8e22a625",
+  "centralSha": "1fa99615408d717562b187432c4c2b0a7fe7ffa7",
   "profile": "service",
   "project": null,
   "files": {
@@ -110,7 +110,7 @@
     },
     ".standards/check.mjs": {
       "mode": "full",
-      "sha256": "ef4c3be007af70fd1701cc63d590f0dc4aa52a4aeaa34526f5e6f9abc1369ba7",
+      "sha256": "173364dd454da9a5a772d7a597391b2e5a760d1f3907bf73d6b1c6faa486ee6a",
       "source": "scripts/standards-check.mjs"
     },
     ".standards/ioc-scan.mjs": {
