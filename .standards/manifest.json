@@ -1,5 +1,5 @@
 {
-  "centralSha": "d9a81d5145620bdbd698a30a2bf55d6db4afe9da",
+  "centralSha": "060e0d50766fa2a1dbd65d4dd13a8fd52193adbb",
   "profile": "service",
   "project": null,
   "files": {
@@ -22,6 +22,11 @@
       "mode": "full",
       "sha256": "e67554ab7dd656ab57a1690d5a0ef18df592c96c562f482f92beb78045286003",
       "source": "templates/common/.claude/settings.json.tmpl"
+    },
+    ".claude/skills/orca-lanes/SKILL.md": {
+      "mode": "full",
+      "sha256": "c82722c8e36622482062325abb0761deb43b7d5b23bc33f5f93d27e973c2612c",
+      "source": "templates/common/skills/orca-lanes/SKILL.md"
     },
     ".claude/skills/std-backlog/SKILL.md": {
       "mode": "full",
@@ -262,6 +267,11 @@
       "mode": "full",
       "sha256": "f4ed7d75564cca927767b1388a9bdbab0a9302f1b0d6dffe489516f5efacf443",
       "source": "templates/deploy/deploy/ssm-get.sh.tmpl"
+    },
+    "skills/orca-lanes/SKILL.md": {
+      "mode": "full",
+      "sha256": "c82722c8e36622482062325abb0761deb43b7d5b23bc33f5f93d27e973c2612c",
+      "source": "templates/common/skills/orca-lanes/SKILL.md"
     },
     "skills/std-backlog/SKILL.md": {
       "mode": "full",
