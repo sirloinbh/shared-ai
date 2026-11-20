@@ -4,8 +4,10 @@
 // Browser access: the shared session cookie (checked with shared-auth), CORS only for <app>.<root domain> with
 // credentials, and the header `X-Requested-With: ai-shell` on every POST (a custom header forces a CORS preflight,
 // so a foreign page cannot send it). Only the owner (AI_OWNER_ID) may chat. Events, one JSON object per `data:` line:
-//   text {delta}  tool_call {id, app, tool, input, readOnly, needsConfirmation}  tool_result {id, ok, summary}
+//   start {conversationId}  text {delta}  tool_call {id, app, tool, input, readOnly, needsConfirmation}  tool_result {id, ok, summary}
 //   limit {message}  error {message}  done {conversationId}
+// `start` comes first: the shell needs the id to answer a confirmation (POST /api/chat/confirm) while the stream is
+// still open, because `done` is sent only after that answer (#907).
 import { randomUUID } from 'node:crypto';
 
 import type Anthropic from '@anthropic-ai/sdk';
@@ -156,6 +158,7 @@ export function createChatRouter(deps: ChatDeps): Router {
     const send = (event: Record<string, unknown>) => {
       if (!closed) res.write(`data: ${JSON.stringify(event)}\n\n`);
     };
+    send({ type: 'start', conversationId });
     const keepAlive = setInterval(() => !closed && res.write(': keep-alive\n\n'), keepAliveMs);
     const mine = new Set<string>();
     res.on('close', () => {

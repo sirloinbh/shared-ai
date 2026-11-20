@@ -223,11 +223,12 @@ test('a read tool streams tool_call, tool_result, text and done, and the history
     const events = parse(await res.text());
     assert.deepEqual(
       events.map((e) => e.type),
-      ['text', 'tool_call', 'tool_result', 'text', 'done'],
+      ['start', 'text', 'tool_call', 'tool_result', 'text', 'done'],
     );
-    assert.deepEqual(events[1], { type: 'tool_call', id: 't1', app: 'workout-memo', tool: 'list_workouts', input: { from: '2026-11-01', to: '2026-11-18' }, readOnly: true, needsConfirmation: false });
-    assert.equal(events[2]!.ok, true);
-    assert.equal(events[4]!.conversationId, '11111111-1111-4111-8111-111111111111');
+    assert.deepEqual(events[0], { type: 'start', conversationId: '11111111-1111-4111-8111-111111111111' }, 'the id comes first, so Allow can be answered before done');
+    assert.deepEqual(events[2], { type: 'tool_call', id: 't1', app: 'workout-memo', tool: 'list_workouts', input: { from: '2026-11-01', to: '2026-11-18' }, readOnly: true, needsConfirmation: false });
+    assert.equal(events[3]!.ok, true);
+    assert.equal(events[5]!.conversationId, '11111111-1111-4111-8111-111111111111');
     assert.equal(s.app.state.calls[0]?.caller.client, 'ai-shell');
     assert.match(String(s.requests[0]!.system), /"workout-memo" on the page "\/workouts"/);
     const saved = s.db.conversations.get('11111111-1111-4111-8111-111111111111')!.messages as unknown[];
@@ -244,6 +245,7 @@ test('a tool that changes data waits for Allow; the stream continues after the c
   try {
     const res = await post(s, '/api/chat', BODY);
     const first = await readUntil(res, (e) => e.type === 'tool_call');
+    assert.equal(first.events[0]?.type, 'start', 'the id arrives while the stream still waits for Allow');
     const call = first.events.find((e) => e.type === 'tool_call')!;
     assert.equal(call.needsConfirmation, true);
     assert.equal(call.readOnly, false);
@@ -259,9 +261,9 @@ test('a tool that changes data waits for Allow; the stream continues after the c
     const events = parse(raw);
     assert.deepEqual(
       events.map((e) => e.type),
-      ['tool_call', 'tool_result', 'text', 'done'],
+      ['start', 'tool_call', 'tool_result', 'text', 'done'],
     );
-    assert.equal(events[1]!.ok, true);
+    assert.equal(events[2]!.ok, true);
     assert.equal(s.app.state.calls.length, 1);
     assert.equal((await post(s, '/api/chat/confirm', { conversationId: '11111111-1111-4111-8111-111111111111', callId: 't1', approve: true })).status, 404, 'an answer counts once');
   } finally {
@@ -303,9 +305,9 @@ test('a reached monthly limit is sent as a limit event and no Claude request is 
     const events = parse(await (await post(s, '/api/chat', BODY)).text());
     assert.deepEqual(
       events.map((e) => e.type),
-      ['limit'],
+      ['start', 'limit'],
     );
-    assert.match(String(events[0]!.message), /monthly/i);
+    assert.match(String(events.find((e) => e.type === 'limit')!.message), /monthly/i);
     assert.equal(s.requests.length, 0);
   } finally {
     await s.close();
