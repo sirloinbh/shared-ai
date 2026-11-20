@@ -1,5 +1,5 @@
 {
-  "centralSha": "65e559661e7dfbd05d42d7031244677035f71819",
+  "centralSha": "9c1f654987fbeb535abcfddb0cb2bf5828c53c10",
   "profile": "service",
   "project": null,
   "files": {
@@ -95,7 +95,7 @@
     },
     ".github/workflows/ci.yml": {
       "mode": "full",
-      "sha256": "959f1692284d08f457f0bbd1c8760fb54fddcf3532f6e25356f4a7cf88cec4b1",
+      "sha256": "2feae30a745eebb6291c9cc016fa09a58d116238483c63bf288cf1c6fc14c9e4",
       "source": "templates/service/.github/workflows/ci.yml.tmpl"
     },
     ".gitignore": {
@@ -110,12 +110,12 @@
     },
     ".standards/check.mjs": {
       "mode": "full",
-      "sha256": "0507fcf2a617ec2a7b7dde04bd66adfa15a26e25cd4d5f5d50ecce455616ce1e",
+      "sha256": "ef4c3be007af70fd1701cc63d590f0dc4aa52a4aeaa34526f5e6f9abc1369ba7",
       "source": "scripts/standards-check.mjs"
     },
     ".standards/ioc-scan.mjs": {
       "mode": "full",
-      "sha256": "a89be5071d7761fe9a77a9f9b3a14288aa2a261a04a55e46a21d1fe09e5d75b6",
+      "sha256": "1fdedfb197f82a9e97a6f2282d48b693f0a5bc8d20f6fb34c88075fd342b1ed0",
       "source": "scripts/ioc-scan.mjs"
     },
     ".standards/lib/env-tags.mjs": {
@@ -140,7 +140,7 @@
     },
     ".standards/secret-scan.mjs": {
       "mode": "full",
-      "sha256": "cb6a324f3b8207b779bfb4ef48cff98527461f2761c0d83a322a46e45e209fa8",
+      "sha256": "951b4e75e5515818717413a0ed03e94d8224a7f89ba4af7f2399a66860cd1b9e",
       "source": "scripts/secret-scan.mjs"
     },
     ".vscode/settings.json": {
@@ -185,7 +185,7 @@
     },
     "backend/test/standard/tools.ts": {
       "mode": "full",
-      "sha256": "833c04b69994066d759e99717e612658c2ced698f6767b2f535ddcac85343334",
+      "sha256": "ab47124dfdeca19e68ba17453f069a7c8194540a44e2b1f1209348f3907b21fa",
       "source": "templates/app/backend/src/standard/tools.ts"
     },
     "CLAUDE.md": {
@@ -200,7 +200,7 @@
     },
     "deploy/autodeploy.sh": {
       "mode": "full",
-      "sha256": "885f2917e9659d0742d29428ac7a6e180a83cd8bda8ec5ef80564e6ff0c5d7b1",
+      "sha256": "60cc5e948246661a2c17566e391d5664721f55654038877d42980c048d387623",
       "source": "templates/deploy/deploy/autodeploy.sh.tmpl"
     },
     "deploy/autodeploy.timer": {
@@ -215,7 +215,7 @@
     },
     "deploy/backup.sh": {
       "mode": "full",
-      "sha256": "b1696dbdf209979bc4fe5758476d558836627726870c0da355236469fd9b4239",
+      "sha256": "a76a9367c2b1c6069101dcb1356b2307e705a165953fc32037cb400e592013b3",
       "source": "templates/deploy/deploy/backup.sh.tmpl"
     },
     "deploy/backup.timer": {
@@ -245,7 +245,7 @@
     },
     "deploy/remote-deploy.sh": {
       "mode": "full",
-      "sha256": "0b2dfaf74da5fd45783ac9a640b20f3750e4791605e5b564801b34bc38095eca",
+      "sha256": "dbbd987abaf792cf19e807e9c969a6f38de09f550cd452389c3c0e351a3d9668",
       "source": "templates/deploy/deploy/remote-deploy.sh.tmpl"
     },
     "deploy/restore-check.service": {
