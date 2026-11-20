@@ -64,7 +64,7 @@ export function allowedOrigin(origin: string | undefined, rootDomain: string | u
 function systemPrompt(app: string, page: string): string {
   return [
     "You are the assistant of the owner of a personal app portfolio. You can read and change the owner's data in the apps through your tools.",
-    `The owner is in the app "${app}" on the page "${page}". When a request names no app, it means this one.`,
+    `The owner is in the app "${app}" on the page "${page}". When a request names no app, it means this one: use the tools of "${app}" and do not read or change another app's data unless the owner names that app or asks about more than one app.`,
     'The system asks the owner before any tool that changes data runs, so call the tool directly; do not ask for permission in text.',
     'Answer briefly, in the language the owner writes in. Say so plainly when a tool failed or the owner refused a change.',
   ].join('\n');
@@ -179,6 +179,7 @@ export function createChatRouter(deps: ChatDeps): Router {
         caller: deps.caller,
         hub: deps.hub,
         request: { model: deps.model, max_tokens: 4096, system: systemPrompt(context.app, context.page), messages: [...history, { role: 'user', content: input[0]!.content }] },
+        firstApp: context.app,
         context: { conversationId, app: context.app, page: context.page, client: 'ai-shell' },
         approve: (_tool, _input, id) => {
           if (closed) return Promise.resolve(false);

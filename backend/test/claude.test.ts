@@ -266,3 +266,30 @@ test('hub tools become Messages API tools without the $schema key', () => {
   ]);
   assert.deepEqual(tool, { name: 'workout_memo__list_workouts', description: '[workout-memo] List.', input_schema: { type: 'object', properties: {} } });
 });
+
+test('the tools of the current app come first and the rest keep their order (#916)', () => {
+  const tool = (app: string, name: string) => ({
+    name: `${app.replace('-', '_')}__${name}`,
+    app,
+    tool: name,
+    description: 'x',
+    inputSchema: { type: 'object' as const, properties: {} },
+    scope: `${app}:read`,
+    annotations: { readOnlyHint: true, destructiveHint: false },
+  });
+  const tools = [tool('cert-manager', 'list_certifications'), tool('money-ledger', 'list_entries'), tool('workout-memo', 'add_workout'), tool('workout-memo', 'list_workouts')];
+  assert.deepEqual(
+    claudeTools(tools, 'workout-memo').map((t) => t.name),
+    ['workout_memo__add_workout', 'workout_memo__list_workouts', 'cert_manager__list_certifications', 'money_ledger__list_entries'],
+  );
+  assert.deepEqual(
+    claudeTools(tools).map((t) => t.name),
+    tools.map((t) => t.name),
+    'without a current app the order is unchanged',
+  );
+  assert.deepEqual(
+    claudeTools(tools, 'unknown-app').map((t) => t.name),
+    tools.map((t) => t.name),
+    'an app with no tools changes nothing',
+  );
+});

@@ -231,6 +231,7 @@ test('a read tool streams tool_call, tool_result, text and done, and the history
     assert.equal(events[5]!.conversationId, '11111111-1111-4111-8111-111111111111');
     assert.equal(s.app.state.calls[0]?.caller.client, 'ai-shell');
     assert.match(String(s.requests[0]!.system), /"workout-memo" on the page "\/workouts"/);
+    assert.match(String(s.requests[0]!.system), /use the tools of "workout-memo" and do not read or change another app's data/, 'the prompt keeps the request in the current app (#916)');
     const saved = s.db.conversations.get('11111111-1111-4111-8111-111111111111')!.messages as unknown[];
     assert.equal(saved.length, 4, 'user, assistant, tool result, assistant');
     assert.equal(s.db.usage.length, 2, 'one ai_usage row per Claude request');
