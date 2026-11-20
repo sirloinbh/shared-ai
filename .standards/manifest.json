@@ -1,5 +1,5 @@
 {
-  "centralSha": "9c1f654987fbeb535abcfddb0cb2bf5828c53c10",
+  "centralSha": "3a2591d164c709be1710ba0267c874244def860f",
   "profile": "service",
   "project": null,
   "files": {
@@ -245,7 +245,7 @@
     },
     "deploy/remote-deploy.sh": {
       "mode": "full",
-      "sha256": "dbbd987abaf792cf19e807e9c969a6f38de09f550cd452389c3c0e351a3d9668",
+      "sha256": "aa801307125a48922cde420f1047e4edfc48ce94f93cd1b09619e73ce69e52dd",
       "source": "templates/deploy/deploy/remote-deploy.sh.tmpl"
     },
     "deploy/restore-check.service": {
