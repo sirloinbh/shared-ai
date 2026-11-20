@@ -36,6 +36,8 @@ export type ChatDeps = {
   /** Seconds between keep-alive comments on an open stream (default 15). */
   keepAliveMs?: number;
   newId?: () => string;
+  /** The clock, for the date in the system prompt (tests set it). */
+  now?: () => Date;
 };
 
 const MAX_HISTORY_MESSAGES = 80;
@@ -61,9 +63,18 @@ export function allowedOrigin(origin: string | undefined, rootDomain: string | u
   return match && match[2] === rootDomain && match[1] !== 'ai' ? origin : null;
 }
 
-function systemPrompt(app: string, page: string): string {
+/** The date in the owner's time zone (Asia/Seoul), as YYYY-MM-DD and the weekday. */
+export function todayInSeoul(now: Date): { date: string; weekday: string } {
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'long' }).formatToParts(now);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
+  return { date: `${get('year')}-${get('month')}-${get('day')}`, weekday: get('weekday') };
+}
+
+function systemPrompt(app: string, page: string, now: Date): string {
+  const today = todayInSeoul(now);
   return [
     "You are the assistant of the owner of a personal app portfolio. You can read and change the owner's data in the apps through your tools.",
+    `Today is ${today.date} (${today.weekday}) in the owner's time zone, Asia/Seoul. Use it for "today", "this week", "latest" and other relative dates instead of asking for a date.`,
     `The owner is in the app "${app}" on the page "${page}". When a request names no app, it means this one: use the tools of "${app}" and do not read or change another app's data unless the owner names that app or asks about more than one app.`,
     'The system asks the owner before any tool that changes data runs, so call the tool directly; do not ask for permission in text.',
     'Answer briefly, in the language the owner writes in. Say so plainly when a tool failed or the owner refused a change.',
@@ -178,7 +189,7 @@ export function createChatRouter(deps: ChatDeps): Router {
       const { messages } = await runToolLoop({
         caller: deps.caller,
         hub: deps.hub,
-        request: { model: deps.model, max_tokens: 4096, system: systemPrompt(context.app, context.page), messages: [...history, { role: 'user', content: input[0]!.content }] },
+        request: { model: deps.model, max_tokens: 4096, system: systemPrompt(context.app, context.page, (deps.now ?? (() => new Date()))()), messages: [...history, { role: 'user', content: input[0]!.content }] },
         firstApp: context.app,
         context: { conversationId, app: context.app, page: context.page, client: 'ai-shell' },
         approve: (_tool, _input, id) => {

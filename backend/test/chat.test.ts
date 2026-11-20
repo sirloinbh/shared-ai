@@ -7,7 +7,7 @@ import type Anthropic from '@anthropic-ai/sdk';
 
 import { createApp } from '../src/app.js';
 import { ChatStore } from '../src/chat-store.js';
-import { allowedOrigin, type ChatDeps } from '../src/chat.js';
+import { allowedOrigin, type ChatDeps, todayInSeoul } from '../src/chat.js';
 import { ClaudeCaller, type MessagesClient } from '../src/claude.js';
 import { type Db, MIGRATIONS } from '../src/db.js';
 import { ToolHub } from '../src/hub.js';
@@ -97,6 +97,8 @@ async function setup(options: { answers?: Anthropic.Message[]; session?: Session
     confirmMs: options.confirmMs,
     keepAliveMs: 60_000,
     newId: () => '11111111-1111-4111-8111-111111111111',
+    // 01:30 on 2026-11-21 in Seoul, still 2026-11-20 in UTC.
+    now: () => new Date('2026-11-20T16:30:00Z'),
   };
   const server = createApp({ ping: async () => {}, apps: () => hub.apps(), chat: deps }).listen(0, '127.0.0.1');
   await new Promise((r) => server.once('listening', r));
@@ -231,6 +233,7 @@ test('a read tool streams tool_call, tool_result, text and done, and the history
     assert.equal(events[5]!.conversationId, '11111111-1111-4111-8111-111111111111');
     assert.equal(s.app.state.calls[0]?.caller.client, 'ai-shell');
     assert.match(String(s.requests[0]!.system), /"workout-memo" on the page "\/workouts"/);
+    assert.match(String(s.requests[0]!.system), /Today is 2026-11-21 \(Saturday\) in the owner's time zone, Asia\/Seoul/, 'the prompt carries today in Seoul, not the UTC date (#35)');
     assert.match(String(s.requests[0]!.system), /use the tools of "workout-memo" and do not read or change another app's data/, 'the prompt keeps the request in the current app (#916)');
     const saved = s.db.conversations.get('11111111-1111-4111-8111-111111111111')!.messages as unknown[];
     assert.equal(saved.length, 4, 'user, assistant, tool result, assistant');
@@ -359,4 +362,10 @@ test('the session check keeps only the shared cookies, caches a good answer, and
   assert.deepEqual(await down(cookie), { status: 'unavailable' });
   const signedOut = createSessionCheck({ authUrl: 'http://auth.test', fetch: (async () => new Response('null')) as typeof fetch });
   assert.deepEqual(await signedOut(cookie), { status: 'none' });
+});
+
+test('todayInSeoul uses the Seoul calendar day, not UTC', () => {
+  assert.deepEqual(todayInSeoul(new Date('2026-11-20T14:59:59Z')), { date: '2026-11-20', weekday: 'Friday' });
+  assert.deepEqual(todayInSeoul(new Date('2026-11-20T15:00:00Z')), { date: '2026-11-21', weekday: 'Saturday' });
+  assert.deepEqual(todayInSeoul(new Date('2026-12-31T15:30:00Z')), { date: '2027-01-01', weekday: 'Friday' });
 });
