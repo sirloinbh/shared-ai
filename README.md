@@ -160,7 +160,7 @@ Success:
 - It prints `deploy: created .env with a new DB password` (first run only) and `deployed <12 characters>`, and no `could not read ... @required` line. On `health check failed`, stop and look at `docker compose logs --tail 50 api` (do not paste `.env`).
 - `curl -fsS http://127.0.0.1:8111/api/health` prints `{"status":"ok"}`.
 - `cat .deployed` equals `git rev-parse --short=12 HEAD`.
-- `docker ps --format '{{.Names}} {{.Status}}'` shows `shared-ai-api-1` Up and `shared-ai-db-1` Up (healthy).
+- `docker ps --format '{{.Names}} {{.Status}}'` shows `shared-ai-api-1` Up (healthy) and `shared-ai-db-1` Up (healthy). The `api` service has a Compose healthcheck on `/api/health` and runs under a small init, so `docker compose stop api` ends in about 2 seconds.
 
 ### 5. Automatic deploys and backups (server)
 
