@@ -1,5 +1,5 @@
 {
-  "centralSha": "018b16251d584eccd1e8f39e6ac31de4136961bd",
+  "centralSha": "60017af6176a7bc7ef0587d6fc2e75eb72f3f7ad",
   "profile": "service",
   "project": null,
   "files": {
@@ -35,8 +35,13 @@
     },
     ".claude/skills/std-communication/SKILL.md": {
       "mode": "full",
-      "sha256": "2487a690de4ef5cd52fddef0d7e81bda5e4bd0957b90b5fdd9916c2b78b70b9d",
+      "sha256": "a1ea728d0f38a4e5d88885831eb760480826da89d0ef970c91759ac21f4d7883",
       "source": "templates/common/skills/std-communication/SKILL.md"
+    },
+    ".claude/skills/std-feature-overview/SKILL.md": {
+      "mode": "full",
+      "sha256": "687730f3fee3731588fc0bb4d427441fa1c34ff4a90e3786de9bf6ad44a5fbc9",
+      "source": "templates/common/skills/std-feature-overview/SKILL.md"
     },
     ".claude/skills/std-git-writing/SKILL.md": {
       "mode": "full",
@@ -163,6 +168,21 @@
       "sha256": "04863783c48925969d54e99b90b5edb2f0013c00c7219326db3847592ae3f2a2",
       "source": "scripts/lib/generated.mjs"
     },
+    "backend/test/standard/audit.ts": {
+      "mode": "full",
+      "sha256": "2a2323841a38845c268b53939875d4072c8819500caf501ce0adfdb059266a21",
+      "source": "templates/app/backend/src/standard/audit.ts"
+    },
+    "backend/test/standard/db.ts": {
+      "mode": "full",
+      "sha256": "859eaaa70e1f2a704d910423e0e56bd47da7a03bf5e69bab873f414282276369",
+      "source": "templates/app/backend/src/standard/db.ts"
+    },
+    "backend/test/standard/tools.ts": {
+      "mode": "full",
+      "sha256": "833c04b69994066d759e99717e612658c2ced698f6767b2f535ddcac85343334",
+      "source": "templates/app/backend/src/standard/tools.ts"
+    },
     "CLAUDE.md": {
       "mode": "full",
       "sha256": "249fb1922db3e1b534a5a6b6293cb1c37915daed811364b436c3d1fa7946d6fc",
@@ -250,8 +270,13 @@
     },
     "skills/std-communication/SKILL.md": {
       "mode": "full",
-      "sha256": "2487a690de4ef5cd52fddef0d7e81bda5e4bd0957b90b5fdd9916c2b78b70b9d",
+      "sha256": "a1ea728d0f38a4e5d88885831eb760480826da89d0ef970c91759ac21f4d7883",
       "source": "templates/common/skills/std-communication/SKILL.md"
+    },
+    "skills/std-feature-overview/SKILL.md": {
+      "mode": "full",
+      "sha256": "687730f3fee3731588fc0bb4d427441fa1c34ff4a90e3786de9bf6ad44a5fbc9",
+      "source": "templates/common/skills/std-feature-overview/SKILL.md"
     },
     "skills/std-git-writing/SKILL.md": {
       "mode": "full",
