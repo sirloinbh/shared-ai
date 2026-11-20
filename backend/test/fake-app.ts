@@ -1,19 +1,18 @@
-// A stand-in for an app's /internal/tools, for tests. verifyCallToken below is copied unchanged from the managed file
-// templates/app/backend/src/standard/tools.ts in sirloinbh/project-standards (commit 8090223), so a token this service
-// signs is checked exactly as an app checks it. The routes answer like registerToolRoutes there: the list as
-// `{ app, tools }`, a call as `{ result }`, errors as `{ error }` with 401, 403, 404, or 400. Update the copy when that
-// file changes.
-import { type KeyObject, verify } from 'node:crypto';
+// A stand-in for an app's /internal/tools, for tests. The token check is the managed file standard/tools.ts (synced from
+// templates/app/backend/src/standard/ in sirloinbh/project-standards, #672), so a token this service signs is checked
+// exactly as an app checks it, and a change to the claims or limits fails a test here. The routes answer like
+// registerToolRoutes there: the list as `{ app, tools }`, a call as `{ result }`, errors as `{ error }` with 401, 403,
+// 404, or 400; a token works once, for the tool it names.
+import type { KeyObject } from 'node:crypto';
 import type { AddressInfo } from 'node:net';
 
 import express from 'express';
 
-export type ToolCaller = { owner: string; client: string; scopes: readonly string[]; jti: string | null; tool: string | null; exp: number };
+import { createSeenTokens, LIST_TOOL, MAX_TOKEN_SECONDS, type ToolCaller, verifyCallToken } from './standard/tools.js';
 
-// --- copied from templates/app/backend/src/standard/tools.ts (8090223) ---
-export const MAX_TOKEN_SECONDS = 120;
-const CLOCK_SKEW_SECONDS = 30;
+export { MAX_TOKEN_SECONDS, verifyCallToken };
 
+/** An error with the HTTP status the fake app answers with. */
 class CallError extends Error {
   readonly status: number;
   constructor(status: number, message: string) {
@@ -21,53 +20,8 @@ class CallError extends Error {
     this.status = status;
   }
 }
+const statusOf = (err: unknown) => (err instanceof Error && 'status' in err && typeof err.status === 'number' ? err.status : null);
 
-function base64url(part: string) {
-  return Buffer.from(part, 'base64url');
-}
-
-/** Checks a compact EdDSA JWT from shared-ai for this app and returns the caller, or throws a 401 CallError. */
-export function verifyCallToken(token: string, key: KeyObject, app: string, now = Date.now()): ToolCaller {
-  const parts = token.split('.');
-  if (parts.length !== 3) throw new CallError(401, 'Invalid call token');
-  const [header, payload, signature] = parts as [string, string, string];
-  let head: { alg?: unknown };
-  let claims: Record<string, unknown>;
-  try {
-    head = JSON.parse(base64url(header).toString('utf8')) as { alg?: unknown };
-    claims = JSON.parse(base64url(payload).toString('utf8')) as Record<string, unknown>;
-  } catch {
-    throw new CallError(401, 'Invalid call token');
-  }
-  if (typeof head !== 'object' || head === null || typeof claims !== 'object' || claims === null) {
-    throw new CallError(401, 'Invalid call token');
-  }
-  if (head.alg !== 'EdDSA') throw new CallError(401, 'Invalid call token');
-  let valid = false;
-  try {
-    valid = verify(null, Buffer.from(`${header}.${payload}`), key, base64url(signature));
-  } catch {
-    // A malformed signature is a bad token, not a server error.
-  }
-  if (!valid) throw new CallError(401, 'Invalid call token');
-  const seconds = Math.floor(now / 1000);
-  const { iss, aud, sub, client, scope, iat, exp, jti, tool } = claims;
-  if (iss !== 'shared-ai' || aud !== app) throw new CallError(401, 'Call token is not for this app');
-  if (typeof iat !== 'number' || typeof exp !== 'number' || iat > seconds + CLOCK_SKEW_SECONDS) {
-    throw new CallError(401, 'Invalid call token');
-  }
-  if (exp <= seconds - CLOCK_SKEW_SECONDS || exp - iat > MAX_TOKEN_SECONDS) {
-    throw new CallError(401, 'Call token expired');
-  }
-  if (typeof sub !== 'string' || !sub || typeof client !== 'string' || !client || typeof scope !== 'string') {
-    throw new CallError(401, 'Invalid call token');
-  }
-  if ((jti !== undefined && (typeof jti !== 'string' || !jti)) || (tool !== undefined && (typeof tool !== 'string' || !tool))) {
-    throw new CallError(401, 'Invalid call token');
-  }
-  return { owner: sub, client, scopes: scope.split(' ').filter(Boolean), jti: jti ?? null, tool: tool ?? null, exp };
-}
-// --- end of copy ---
 
 /** The workout-memo pilot tools as its /internal/tools lists them (project-standards #559). */
 export const WORKOUT_TOOLS = [
@@ -103,24 +57,24 @@ export async function startFakeApp(app: string, publicKey: KeyObject, tools: unk
   const state = { tools, down: false, calls: [] as FakeCall[], lists: [] as ReturnType<typeof callerOf>[] };
   const server = express();
   server.use(express.json());
-  const seen = new Set<string>();
+  const seen = createSeenTokens();
   const check = (req: express.Request, tool: string) => {
     const match = /^Bearer (\S+)$/.exec(req.get('authorization') ?? '');
     if (!match?.[1]) throw new CallError(401, 'Call token missing');
     const verified = verifyCallToken(match[1], publicKey, app);
     if (verified.tool !== tool) throw new CallError(401, 'Call token is not for this tool');
-    if (!verified.jti || seen.has(verified.jti)) throw new CallError(401, 'Call token was already used');
-    seen.add(verified.jti);
+    if (!verified.jti || !seen.use(verified.jti, verified.exp)) throw new CallError(401, 'Call token was already used');
     return verified;
   };
   const fail = (res: express.Response, err: unknown) => {
-    if (err instanceof CallError) res.status(err.status).json({ error: err.message });
+    const status = statusOf(err);
+    if (status !== null && err instanceof Error) res.status(status).json({ error: err.message });
     else res.status(500).json({ error: 'Internal error' });
   };
   server.use((_req, res, next) => (state.down ? void res.status(503).json({ error: 'down' }) : next()));
   server.get('/internal/tools', (req, res) => {
     try {
-      state.lists.push(callerOf(check(req, '@list')));
+      state.lists.push(callerOf(check(req, LIST_TOOL)));
       res.json({ app, tools: state.tools });
     } catch (err) {
       fail(res, err);
