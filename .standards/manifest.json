@@ -1,5 +1,5 @@
 {
-  "centralSha": "60017af6176a7bc7ef0587d6fc2e75eb72f3f7ad",
+  "centralSha": "65e559661e7dfbd05d42d7031244677035f71819",
   "profile": "service",
   "project": null,
   "files": {
@@ -95,7 +95,7 @@
     },
     ".github/workflows/ci.yml": {
       "mode": "full",
-      "sha256": "12f2a32002c5feb516fd845f6d277685237844ff02257d52bc6ef6b5f5015f50",
+      "sha256": "959f1692284d08f457f0bbd1c8760fb54fddcf3532f6e25356f4a7cf88cec4b1",
       "source": "templates/service/.github/workflows/ci.yml.tmpl"
     },
     ".gitignore": {
@@ -110,7 +110,7 @@
     },
     ".standards/check.mjs": {
       "mode": "full",
-      "sha256": "271a730f1ffc9f3275f0ac10c2e0baff52a584b0036f7bbe4f86f57fa0327f4a",
+      "sha256": "0507fcf2a617ec2a7b7dde04bd66adfa15a26e25cd4d5f5d50ecce455616ce1e",
       "source": "scripts/standards-check.mjs"
     },
     ".standards/ioc-scan.mjs": {
@@ -128,11 +128,6 @@
       "sha256": "a22ef363d077ac564ebb6a36c9e10130d3b012de074051a70a55dab2c16e8f47",
       "source": "scripts/lib/hash.mjs"
     },
-    ".standards/lib/lockfiles.mjs": {
-      "mode": "full",
-      "sha256": "9cdebe7889490666c8690b76c51393746e7af4d6c4cf02ef1137d86afc3387c2",
-      "source": "scripts/lib/lockfiles.mjs"
-    },
     ".standards/lib/manifest.mjs": {
       "mode": "full",
       "sha256": "cd27f8b1877953444c098a406bedef1eb455fe15403fda194ef47d76bbb85f03",
@@ -142,11 +137,6 @@
       "mode": "full",
       "sha256": "109f91dba8789a498bd342610e3ebda04662a74b420694efbf2beab8bdbd058d",
       "source": "scripts/lib/render.mjs"
-    },
-    ".standards/lockfiles.mjs": {
-      "mode": "full",
-      "sha256": "d7f566edefdc07ac8873a15d24899f46d6e0865a6b18b7997bb7e18d994dc7ad",
-      "source": "scripts/lockfiles.mjs"
     },
     ".standards/secret-scan.mjs": {
       "mode": "full",
@@ -163,6 +153,21 @@
       "sha256": "f357b73bfcfa9907d7df0246f6f1e3ecaa7b1c739b8497881fd8c83e17a06eeb",
       "source": "templates/service/AGENTS.md.tmpl"
     },
+    "backend/.dockerignore": {
+      "mode": "full",
+      "sha256": "ae83cb5bc4a39debedbbb39d5c8db4f8aaef0c521a8f817d712c84abba8119a0",
+      "source": "templates/backend/backend/.dockerignore.tmpl"
+    },
+    "backend/.npmrc": {
+      "mode": "full",
+      "sha256": "136155a0631316afdb043ea60bbd6e574ec99c35b8181f6c11394f0ac652404f",
+      "source": "templates/backend/backend/.npmrc.tmpl"
+    },
+    "backend/Dockerfile": {
+      "mode": "full",
+      "sha256": "484a9793f5f39d3a33c5a2b6b8a899ee9faabde5a5b8f9b3d48cf8f4747d25b8",
+      "source": "templates/backend/backend/Dockerfile.tmpl"
+    },
     "backend/src/apps.generated.ts": {
       "mode": "full",
       "sha256": "04863783c48925969d54e99b90b5edb2f0013c00c7219326db3847592ae3f2a2",
@@ -175,7 +180,7 @@
     },
     "backend/test/standard/db.ts": {
       "mode": "full",
-      "sha256": "859eaaa70e1f2a704d910423e0e56bd47da7a03bf5e69bab873f414282276369",
+      "sha256": "740d508493e06ef5ebc1c093218809903fdb68ab9f6ca5a2ffe0ea504ea831db",
       "source": "templates/app/backend/src/standard/db.ts"
     },
     "backend/test/standard/tools.ts": {
