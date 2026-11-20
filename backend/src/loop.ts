@@ -9,9 +9,13 @@ import { ToolCallError } from './hub.js';
 
 const CLAUDE_TOOL_NAME = /^[a-zA-Z0-9_-]{1,64}$/;
 
-/** The hub's tools in the Messages API shape. */
-export function claudeTools(tools: readonly HubTool[]): Anthropic.Tool[] {
-  return tools
+/**
+ * The hub's tools in the Messages API shape. The tools of `firstApp` (the app the owner is in) come first and the
+ * rest keep their order, so a request that names no app meets the current app's tools before any other app's (#916).
+ */
+export function claudeTools(tools: readonly HubTool[], firstApp?: string): Anthropic.Tool[] {
+  const ordered = firstApp ? [...tools.filter((t) => t.app === firstApp), ...tools.filter((t) => t.app !== firstApp)] : tools;
+  return ordered
     .filter((t) => CLAUDE_TOOL_NAME.test(t.name))
     .map((t) => {
       // `$schema` is metadata for validators; the tool definition needs only the schema itself.
@@ -39,6 +43,8 @@ export type ToolLoopOptions = {
   approve: (tool: HubTool, input: unknown, id: string) => Promise<boolean>;
   /** Optional observers, for streaming the turn to the AI shell. They run in order and must not throw. */
   hooks?: ToolLoopHooks;
+  /** The app whose tools are listed first (the app the owner is in). */
+  firstApp?: string;
   /** Claude requests at most per turn (default 10). */
   maxRequests?: number;
 };
@@ -47,7 +53,7 @@ export type ToolLoopOptions = {
 export async function runToolLoop(options: ToolLoopOptions): Promise<{ message: Anthropic.Message; messages: Anthropic.MessageParam[] }> {
   const { caller, hub, context, approve } = options;
   const messages: Anthropic.MessageParam[] = [...options.request.messages];
-  const tools = claudeTools(hub.list());
+  const tools = claudeTools(hub.list(), options.firstApp);
   const maxRequests = options.maxRequests ?? 10;
   for (let i = 0; ; i++) {
     const message = await caller.create({ ...options.request, messages, ...(tools.length ? { tools } : {}) }, context);
