@@ -1,5 +1,5 @@
 {
-  "centralSha": "52d0d2c2eb7310dae0d93356742a36fc4914fb30",
+  "centralSha": "b205088594b7c7295df8eba87cb06a37e0a32e0e",
   "profile": "service",
   "project": null,
   "files": {
@@ -264,7 +264,7 @@
     },
     "deploy/install-backup.sh": {
       "mode": "full",
-      "sha256": "0b1fe7f8f856556bb1783c74d6e0161e592cc45e9a830f7adf33e1f25e08cb01",
+      "sha256": "b514db7a92524538abbf987ab675ad0309a3d25359698dbcdf4509c96edfc616",
       "source": "templates/deploy/deploy/install-backup.sh.tmpl"
     },
     "deploy/notify.sh": {
@@ -276,6 +276,21 @@
       "mode": "full",
       "sha256": "ecca19476ba1831112d0f882816bb02c8050b224994299c4742e47ff4da6619a",
       "source": "templates/deploy/deploy/remote-deploy.sh.tmpl"
+    },
+    "deploy/report.service": {
+      "mode": "full",
+      "sha256": "5a9c5749b16da3465d48e517fdea4f23479e847e8731fb0c4a8ab2b4cca2e2fb",
+      "source": "templates/deploy/deploy/report.service.tmpl"
+    },
+    "deploy/report.sh": {
+      "mode": "full",
+      "sha256": "a1be2d0dc31bc0e767c6f10c9b970e895dc899b73cee2805dfaa48bacf1c457f",
+      "source": "templates/deploy/deploy/report.sh.tmpl"
+    },
+    "deploy/report.timer": {
+      "mode": "full",
+      "sha256": "462a166ffd42dc5f2ca825a6a006407e1ff464f3aeb922b5989ab3967339eb9a",
+      "source": "templates/deploy/deploy/report.timer.tmpl"
     },
     "deploy/restore-check.service": {
       "mode": "full",
