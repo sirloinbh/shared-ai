@@ -1,5 +1,5 @@
 {
-  "centralSha": "996f0279c4e665ce750573b73cc1935a31e10713",
+  "centralSha": "52d0d2c2eb7310dae0d93356742a36fc4914fb30",
   "profile": "service",
   "project": null,
   "files": {
@@ -175,7 +175,7 @@
     },
     "backend/.dockerignore": {
       "mode": "full",
-      "sha256": "ae83cb5bc4a39debedbbb39d5c8db4f8aaef0c521a8f817d712c84abba8119a0",
+      "sha256": "9ec437ce8c3b74d8ea375cef6044a6d67b7f76a945cba1acdd1d474472d5786d",
       "source": "templates/backend/backend/.dockerignore.tmpl"
     },
     "backend/.npmrc": {
@@ -185,7 +185,7 @@
     },
     "backend/Dockerfile": {
       "mode": "full",
-      "sha256": "484a9793f5f39d3a33c5a2b6b8a899ee9faabde5a5b8f9b3d48cf8f4747d25b8",
+      "sha256": "b88c7e726bf98482fa9d851e2f985ad5c448fa006cb02bf417649af56a8c628b",
       "source": "templates/backend/backend/Dockerfile.tmpl"
     },
     "backend/package.json": {
@@ -274,7 +274,7 @@
     },
     "deploy/remote-deploy.sh": {
       "mode": "full",
-      "sha256": "aa801307125a48922cde420f1047e4edfc48ce94f93cd1b09619e73ce69e52dd",
+      "sha256": "ecca19476ba1831112d0f882816bb02c8050b224994299c4742e47ff4da6619a",
       "source": "templates/deploy/deploy/remote-deploy.sh.tmpl"
     },
     "deploy/restore-check.service": {
