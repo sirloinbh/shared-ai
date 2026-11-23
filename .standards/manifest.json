@@ -1,11 +1,11 @@
 {
-  "centralSha": "138e626f986bed08c4880c789667b741702dd95c",
+  "centralSha": "ecf825fb15cb0a03c924f7f1a20a1b7754fe0f73",
   "profile": "service",
   "project": null,
   "files": {
     ".claude/hooks/block-forbidden-commands.mjs": {
       "mode": "full",
-      "sha256": "f2209c4d1d703155fa794ea9f5b6be13351227c074f77ff16943adebdd1195ec",
+      "sha256": "790b43ff72a29e9c9c47f29ddae893a93ab406613918f4833290cb8d1d599288",
       "source": "templates/common/.claude/hooks/block-forbidden-commands.mjs"
     },
     ".claude/hooks/block-package-installs.mjs": {
@@ -130,7 +130,7 @@
     },
     ".standards/check.mjs": {
       "mode": "full",
-      "sha256": "61108495fe719aafbdf1abd5756e291a25546107bbe7826787a34123b0501243",
+      "sha256": "9189de77515827bb3fe6e4875c0808d9a3d58e87d134659058498aff7e8f4cd6",
       "source": "scripts/standards-check.mjs"
     },
     ".standards/ioc-scan.mjs": {
@@ -209,12 +209,12 @@
     },
     "backend/test/standard/db.ts": {
       "mode": "full",
-      "sha256": "740d508493e06ef5ebc1c093218809903fdb68ab9f6ca5a2ffe0ea504ea831db",
+      "sha256": "14c9830c0d4fa071016c5e2ac134f331bad410f31e109e607a57ad8814e55a51",
       "source": "templates/app/backend/src/standard/db.ts"
     },
     "backend/test/standard/tools.ts": {
       "mode": "full",
-      "sha256": "ab47124dfdeca19e68ba17453f069a7c8194540a44e2b1f1209348f3907b21fa",
+      "sha256": "a495d8224ba162ac906d743ad39cfa210f2e618356f6b54d27e7e6960ae75a15",
       "source": "templates/app/backend/src/standard/tools.ts"
     },
     "CLAUDE.md": {
@@ -269,7 +269,7 @@
     },
     "deploy/notify.sh": {
       "mode": "full",
-      "sha256": "304805c853682678b99e2f42d93d44e0f73adefb7a1b11c4a69e2bec15c24cb6",
+      "sha256": "168f38f974e4bac272e3fc1b794aecddc648933f3559831c0ecad507fbf5511d",
       "source": "templates/deploy/deploy/notify.sh.tmpl"
     },
     "deploy/remote-deploy.sh": {
@@ -284,7 +284,7 @@
     },
     "deploy/report.sh": {
       "mode": "full",
-      "sha256": "a1be2d0dc31bc0e767c6f10c9b970e895dc899b73cee2805dfaa48bacf1c457f",
+      "sha256": "9fd2b00d1160e2431819a8239a1eccee278f41b3b5fc80b23578df25b888e793",
       "source": "templates/deploy/deploy/report.sh.tmpl"
     },
     "deploy/report.timer": {
