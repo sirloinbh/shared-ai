@@ -1,5 +1,5 @@
 {
-  "centralSha": "ecf825fb15cb0a03c924f7f1a20a1b7754fe0f73",
+  "centralSha": "0c81491b447afc9f285662a0a49e08c6a07fdb6a",
   "profile": "service",
   "project": null,
   "files": {
@@ -25,17 +25,17 @@
     },
     ".claude/skills/orca-lanes/SKILL.md": {
       "mode": "full",
-      "sha256": "c82722c8e36622482062325abb0761deb43b7d5b23bc33f5f93d27e973c2612c",
+      "sha256": "01f4a8420135ef970ac06f2fe9088a1235945c669412ada0b5609d82026f5dc6",
       "source": "templates/common/skills/orca-lanes/SKILL.md"
     },
     ".claude/skills/std-backlog/SKILL.md": {
       "mode": "full",
-      "sha256": "d78c85e0ab7e5cde745e013ab27d62b9cbcb8979012ee2dc5fc7b80f309fb6a4",
+      "sha256": "45ef839744ec4a1779da4c0b93137f34a0dbde11249f599529ff8d2f2b8785f5",
       "source": "templates/common/skills/std-backlog/SKILL.md"
     },
     ".claude/skills/std-code-review/SKILL.md": {
       "mode": "full",
-      "sha256": "618268c6357b19b80b1066664e1db03971dbb1ba896be5935fb906e26201d6f1",
+      "sha256": "1eac908e169abc985ac720f98069222895806860899447fec35234bd56157765",
       "source": "templates/common/skills/std-code-review/SKILL.md"
     },
     ".claude/skills/std-communication/SKILL.md": {
@@ -105,7 +105,7 @@
     },
     ".github/workflows/ci.yml": {
       "mode": "full",
-      "sha256": "93d73e83cacd3badca64584b6bb086c63efae34d7d0ca8ae1f8224ef6cbd4fa1",
+      "sha256": "375a7b7a85886383ed66e20b8ca0f961650bffed76631a6d70911941f341ec39",
       "source": "templates/service/.github/workflows/ci.yml.tmpl"
     },
     ".gitignore": {
@@ -130,7 +130,7 @@
     },
     ".standards/check.mjs": {
       "mode": "full",
-      "sha256": "9189de77515827bb3fe6e4875c0808d9a3d58e87d134659058498aff7e8f4cd6",
+      "sha256": "e6631a5aa873e18716d82468846ce83bdd157bf867403778b411ceb3592dad32",
       "source": "scripts/standards-check.mjs"
     },
     ".standards/ioc-scan.mjs": {
@@ -229,7 +229,7 @@
     },
     "deploy/autodeploy.sh": {
       "mode": "full",
-      "sha256": "6cdab15d3e6ac3c2971404f746fb83cac92b552a0e16f6d38cd7d8aac08fd4d3",
+      "sha256": "36732c7f7c1b5b451796ae3baec21dac0271b821b7217cc8f1f4cbbee6e6b7be",
       "source": "templates/deploy/deploy/autodeploy.sh.tmpl"
     },
     "deploy/autodeploy.timer": {
@@ -269,12 +269,12 @@
     },
     "deploy/notify.sh": {
       "mode": "full",
-      "sha256": "168f38f974e4bac272e3fc1b794aecddc648933f3559831c0ecad507fbf5511d",
+      "sha256": "fa0c6cbcc348d33fc1d6a40e926f71b018ff5916076efd89f81ca647716fec1f",
       "source": "templates/deploy/deploy/notify.sh.tmpl"
     },
     "deploy/remote-deploy.sh": {
       "mode": "full",
-      "sha256": "ecca19476ba1831112d0f882816bb02c8050b224994299c4742e47ff4da6619a",
+      "sha256": "9b82de30578ed9271d20359c9a579caf8f6fbce0f33597f2df0370fe6f4c8976",
       "source": "templates/deploy/deploy/remote-deploy.sh.tmpl"
     },
     "deploy/report.service": {
@@ -284,7 +284,7 @@
     },
     "deploy/report.sh": {
       "mode": "full",
-      "sha256": "9fd2b00d1160e2431819a8239a1eccee278f41b3b5fc80b23578df25b888e793",
+      "sha256": "c05f3417bd8984385c4161e4e8d1d4f8d2cc7718cc365561a8ef53544056024e",
       "source": "templates/deploy/deploy/report.sh.tmpl"
     },
     "deploy/report.timer": {
@@ -309,17 +309,17 @@
     },
     "skills/orca-lanes/SKILL.md": {
       "mode": "full",
-      "sha256": "c82722c8e36622482062325abb0761deb43b7d5b23bc33f5f93d27e973c2612c",
+      "sha256": "01f4a8420135ef970ac06f2fe9088a1235945c669412ada0b5609d82026f5dc6",
       "source": "templates/common/skills/orca-lanes/SKILL.md"
     },
     "skills/std-backlog/SKILL.md": {
       "mode": "full",
-      "sha256": "d78c85e0ab7e5cde745e013ab27d62b9cbcb8979012ee2dc5fc7b80f309fb6a4",
+      "sha256": "45ef839744ec4a1779da4c0b93137f34a0dbde11249f599529ff8d2f2b8785f5",
       "source": "templates/common/skills/std-backlog/SKILL.md"
     },
     "skills/std-code-review/SKILL.md": {
       "mode": "full",
-      "sha256": "618268c6357b19b80b1066664e1db03971dbb1ba896be5935fb906e26201d6f1",
+      "sha256": "1eac908e169abc985ac720f98069222895806860899447fec35234bd56157765",
       "source": "templates/common/skills/std-code-review/SKILL.md"
     },
     "skills/std-communication/SKILL.md": {
