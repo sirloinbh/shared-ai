@@ -1,5 +1,5 @@
 {
-  "centralSha": "5fde9f5d08468f52e8a5ec678d5e23b8ed865446",
+  "centralSha": "06ee9c6fcfd93466c25ae1205a937805954da011",
   "profile": "service",
   "project": null,
   "files": {
@@ -55,7 +55,7 @@
     },
     ".claude/skills/std-implementation/SKILL.md": {
       "mode": "full",
-      "sha256": "3088e70c5cfc6a2c72baf94130692b9af2d3834eea5293ab0d3e3742c59a71ae",
+      "sha256": "5fa0f06fe69eef0c6ca535995a3147b6267e7e33b9308b863291165d541e146d",
       "source": "templates/common/skills/std-implementation/SKILL.md"
     },
     ".claude/skills/std-session-notes/SKILL.md": {
@@ -130,7 +130,7 @@
     },
     ".standards/check.mjs": {
       "mode": "full",
-      "sha256": "20784e05a5d7a620f489d0eed0311dd9ee57d52051ef36710f0f8d70fb4d6d4b",
+      "sha256": "bdde46d4e9c4a75813e998fd565f06a42f212b49e45c4a05003b13aabfa50f3f",
       "source": "scripts/standards-check.mjs"
     },
     ".standards/ioc-scan.mjs": {
@@ -157,6 +157,11 @@
       "mode": "full",
       "sha256": "109f91dba8789a498bd342610e3ebda04662a74b420694efbf2beab8bdbd058d",
       "source": "scripts/lib/render.mjs"
+    },
+    ".standards/lib/screen-checks.mjs": {
+      "mode": "full",
+      "sha256": "639113659cf5e550865edc6aa3320848a3438b6821640d77c3e117a5aa8de985",
+      "source": "scripts/lib/screen-checks.mjs"
     },
     ".standards/secret-scan.mjs": {
       "mode": "full",
@@ -339,7 +344,7 @@
     },
     "skills/std-implementation/SKILL.md": {
       "mode": "full",
-      "sha256": "3088e70c5cfc6a2c72baf94130692b9af2d3834eea5293ab0d3e3742c59a71ae",
+      "sha256": "5fa0f06fe69eef0c6ca535995a3147b6267e7e33b9308b863291165d541e146d",
       "source": "templates/common/skills/std-implementation/SKILL.md"
     },
     "skills/std-session-notes/SKILL.md": {
